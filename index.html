@@ -274,7 +274,7 @@
                     <div>
                         <label for="import-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Import to Account</label>
                         <div class="mt-2">
-                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-50">
                                 <option value="">Select an account</option>
                                 </select>
                         </div>
@@ -949,7 +949,7 @@
                 if (db) {
                     // Populate category dropdowns
                     txCategorySelect.innerHTML = txCategoryOptionsHTML;
-                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${expenseCategoryOptionsHTML}`;
+                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${categoryOptionsHTML}`;
                     
                     initializeBudgetUI(); 
                     listenForBudget(user.uid);
@@ -1148,7 +1148,7 @@
                 else if (netWorth < 0) netWorthEl.classList.add('text-red-600');
                 else netWorthEl.classList.add('text-gray-800');
 
-                renderDebtPlanner();
+                renderDebtPlanner(); // V2.2.3 FIX: Auto-run planner on account load
                 updateFinancialFocus(); 
 
             }, (error) => {
@@ -1233,10 +1233,13 @@
         
         // --- 9. Listen for Transactions ---
         function listenForTransactions(userId) {
+            console.log("DEBUG: Starting listener for transactions for user:", userId);
+            
             const collectionPath = `users/${userId}/transactions`;
             const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
 
             transactionsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                console.log("DEBUG: Got transactions snapshot.");
                 txList.innerHTML = ""; 
                 const categoryTotals = {}; 
                 let totalIncomeThisPeriod = 0; 
@@ -1410,27 +1413,10 @@
             }
         }
 
-        // --- 12. DEBT PLANNER LOGIC ---
-
-        function updateDebtButtonStyles() {
-            if (debtSortStrategy === 'snowball') {
-                snowballBtn.classList.replace('bg-gray-300', 'bg-blue-600');
-                snowballBtn.classList.replace('text-gray-700', 'text-white');
-                snowballBtn.classList.remove('hover:bg-gray-400');
-                
-                avalancheBtn.classList.replace('bg-blue-600', 'bg-gray-300');
-                avalancheBtn.classList.replace('text-white', 'text-gray-700');
-                avalancheBtn.classList.add('hover:bg-gray-400');
-            } else { // avalanche
-                avalancheBtn.classList.replace('bg-gray-300', 'bg-blue-600');
-                avalancheBtn.classList.replace('text-gray-700', 'text-white');
-                avalancheBtn.classList.remove('hover:bg-gray-400');
-                
-                snowballBtn.classList.replace('bg-blue-600', 'bg-gray-300');
-                snowballBtn.classList.replace('text-white', 'text-gray-700');
-                snowballBtn.classList.add('hover:bg-gray-400');
-            }
-        }
+        // --- 12. DEBT PLANNER LOGIC (V2.2.0) ---
+        
+        extraPaymentInput.addEventListener('input', renderDebtPlanner);
+        extraPaymentInput.addEventListener('blur', renderDebtPlanner); 
         snowballBtn.addEventListener('click', () => {
             debtSortStrategy = 'snowball';
             updateDebtButtonStyles();
@@ -1444,46 +1430,152 @@
             updateFinancialFocus(); 
         });
         
-        function getSortedDebts() {
-            let debts = userAccounts.filter(acc => acc.type === 'liability' && acc.balance > 0);
+        function calculateDebtPlan(debts, extraPayment) {
+            // Clone the debts array to avoid modifying the global list
+            let debtList = debts.map(d => ({ ...d, remainingBalance: d.balance, monthsToPayoff: 0, totalInterest: 0 }));
             
             if (debtSortStrategy === 'snowball') {
-                debts.sort((a, b) => a.balance - b.balance);
+                // Sort by lowest balance first
+                debtList.sort((a, b) => a.remainingBalance - b.remainingBalance);
             } else { 
-                debts.sort((a, b) => (b.apr || 0) - (a.apr || 0));
+                // Sort by highest APR first (Avalanche)
+                debtList.sort((a, b) => (b.apr || 0) - (a.apr || 0));
             }
-            return debts;
+
+            let totalMonths = 0;
+            let currentExtraPayment = extraPayment; // The snowball starts here
+            
+            // Loop through each debt in order
+            for (let i = 0; i < debtList.length; i++) {
+                let debt = debtList[i];
+                let minPaymentForSnowball = debt.minPayment || 0; 
+                
+                // V2.2.1: Safety check to skip debts that cannot be paid down
+                if (debt.remainingBalance <= 0 || minPaymentForSnowball <= 0) continue; 
+                
+                let totalPayment = minPaymentForSnowball + currentExtraPayment;
+                let monthlyApr = (debt.apr || 0) / 100 / 12;
+                
+                // Safety breaks to prevent infinite loops (common in financial modeling)
+                let loopSafetyCount = 0;
+                
+                let annualInterest = debt.balance * monthlyApr * 12;
+                if (totalPayment * 12 <= annualInterest) {
+                    return { debtList, totalMonths: 361 }; // Trigger 30-year safety break
+                }
+
+
+                while (debt.remainingBalance > 0) {
+                    loopSafetyCount++;
+                    totalMonths++;
+                    
+                    // Break if it exceeds 30 years or hits a runaway loop (usually due to bad data)
+                    if (totalMonths > 360 || loopSafetyCount > 400) { 
+                        return { debtList, totalMonths: 361 }; // Trigger 30-year safety break
+                    }
+
+                    let interest = debt.remainingBalance * monthlyApr;
+                    let principalPayment = totalPayment - interest;
+                    
+                    debt.remainingBalance -= principalPayment;
+                    debt.totalInterest += interest;
+                    debt.monthsToPayoff++; 
+
+                    // Check if we are done with this debt
+                    if (debt.remainingBalance <= 0) {
+                        // Payoff month: Add this debt's *minPayment* to the extra payment for the next debt (the snowball)
+                        currentExtraPayment += minPaymentForSnowball;
+                        debt.remainingBalance = 0; // Ensure it is exactly 0
+                        break; // Move to the next debt
+                    }
+                }
+            }
+            
+            return { debtList, totalMonths };
         }
 
         function renderDebtPlanner() {
             debtPlanList.innerHTML = "";
-            const sortedDebts = getSortedDebts(); 
-
-            if (sortedDebts.length === 0) {
+            const extraPayment = parseFloat(extraPaymentInput.value) || 0;
+            
+            // V2.2.2 FIX: Only filter for liability status; let calculation handle missing data (minPayment > 0)
+            const liabilities = userAccounts.filter(acc => acc.type === 'liability'); 
+            
+            let totalMonthlyMinPayment = 0;
+            const validDebts = liabilities.filter(d => 
+                (d.balance || 0) > 0 && 
+                (d.minPayment || 0) > 0 && 
+                (d.apr || 0) >= 0
+            );
+            validDebts.forEach(d => { totalMonthlyMinPayment += (d.minPayment || 0) });
+            
+            if (liabilities.length === 0) {
                 debtPlanList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
                 return;
             }
+            
+            if (validDebts.length === 0) {
+                debtPlanList.innerHTML = `<li class="text-red-500 font-bold">Warning: Cannot run projection. Make sure your liabilities have a balance, APR, AND Minimum Payment added.</li>`;
+                return;
+            }
 
-            sortedDebts.forEach((debt, index) => {
-                const debtEl = document.createElement('li');
-                debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
-                if (index === 0) {
-                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
-                } else {
-                    debtEl.classList.add('bg-gray-50');
+            // V2.2.0: Run the calculation logic
+            const { debtList, totalMonths } = calculateDebtPlan(validDebts, extraPayment);
+
+            if (totalMonths > 360) {
+                 debtPlanList.innerHTML = `<li class="text-red-500 font-bold">Warning: Payoff takes over 30 years with current payments. Try increasing the extra payment.</li>`;
+                 return;
+            }
+            
+            // V2.2.2 NEW: Add Summary Card
+            const summaryLi = document.createElement('li');
+            summaryLi.className = 'p-3 mb-2 rounded-lg bg-gray-100 border-l-4 border-purple-500 space-y-1';
+            summaryLi.innerHTML = `
+                <p class="text-sm font-medium">Total Monthly Payment: <span class="font-bold text-purple-600">${formatCurrency(totalMonthlyMinPayment + extraPayment)}</span></p>
+                <p class="text-xs">Min. Payments: ${formatCurrency(totalMonthlyMinPayment)} + Extra: ${formatCurrency(extraPayment)}</p>
+                <p class="text-sm font-bold">Total Payoff Time: <span class="text-green-600">${Math.floor(totalMonths / 12)} years and ${totalMonths % 12} months</span></p>
+            `;
+            debtPlanList.appendChild(summaryLi);
+
+
+            const today = new Date();
+            let startingDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            debtList.forEach((debt, index) => {
+                const isPaidOff = debt.monthsToPayoff > 0;
+                
+                let payoffDate = 'N/A';
+                if (isPaidOff) {
+                    let futureDate = new Date(startingDate);
+                    futureDate.setMonth(futureDate.getMonth() + debt.monthsToPayoff); 
+                    payoffDate = formatDateMonthYear(futureDate);
                 }
-                const balanceFormatted = formatCurrency(debt.balance);
-                const aprInfo = debt.apr ? `${debt.apr}% APR` : 'No APR';
-                const minPmtInfo = debt.minPayment ? `${formatCurrency(debt.minPayment)} min. pmt` : 'No min. pmt';
 
+                const debtEl = document.createElement('li');
+                debtEl.className = "p-3 rounded-lg flex flex-col space-y-1";
+
+                // Determine styling for the current target (the first one in the sorted list)
+                const isTarget = index === 0;
+                const baseClass = isTarget ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50';
+
+                debtEl.classList.add(baseClass);
+                
                 debtEl.innerHTML = `
-                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
-                    <div class="flex-1 flex justify-between items-center">
-                        <div>
-                            <p class="font-medium">${debt.name}</p>
-                            <p class="text-sm text-gray-600">${aprInfo} • ${minPmtInfo}</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="flex items-center justify-center h-6 w-6 rounded-full ${isTarget ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'} text-xs font-bold">${index + 1}</span>
+                            <p class="font-semibold text-base ${isTarget ? 'text-blue-700' : 'text-gray-800'}">${debt.name}</p>
                         </div>
-                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800'}">${balanceFormatted}</span>
+                        <span class="text-sm text-gray-700">${debt.apr ? `${debt.apr}% APR` : ''}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 pl-8 space-y-1">
+                        <p>Balance: ${formatCurrency(debt.balance)}</p>
+                        <p>Min. Pmt: ${formatCurrency(debt.minPayment)}</p>
+                        ${isPaidOff ? 
+                            `<p class="font-bold text-green-600">Payoff Date: ${payoffDate}</p>
+                            <p>Total Interest Paid: ${formatCurrency(debt.totalInterest)}</p>` : 
+                            `<p class="font-bold text-red-600">Error: Not projected to be paid off within 30 years.</p>`
+                        }
                     </div>
                 `;
                 debtPlanList.appendChild(debtEl);
