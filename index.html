@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* V2.1.0: Ensure transitions look smooth between modes */
+        html {
+            transition: background-color 0.3s ease;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* light default */
+        }
+        /* V2.1.0: Dark mode body background */
+        html.dark body {
+            background-color: #1f2937; /* gray-800 equivalent */
+        }
+        /* V2.1.0: Card backgrounds for dark mode */
+        .bg-white {
+            transition: background-color 0.3s ease;
+        }
+        html.dark .bg-white {
+            background-color: #374151; /* gray-700 equivalent */
+        }
+        
+        #liability-fields {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        #liability-fields.show {
+            max-height: 300px;
+            opacity: 1;
+        }
+        progress[value] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 12px;
+            border: none;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        progress[value]::-webkit-progress-bar {
+            background-color: #E5E7EB;
+            border-radius: 9999px;
+        }
+        progress[value]::-webkit-progress-value {
+            background-color: #3B82F6;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+        progress[value].over-budget::-webkit-progress-value {
+             background-color: #EF4444;
+        }
+        
+        /* V2.0.5: New style for Clear button */
+        .clear-tx-btn {
+            opacity: 0.7;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem; /* text-xs */
+            line-height: 1rem;
+            color: #6B7280; /* gray-500 */
+            background: #F3F4F6; /* gray-100 */
+            border: 1px solid #D1D5DB; /* gray-300 */
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .clear-tx-btn:hover {
+            opacity: 1;
+            background: #E5E7EB; /* gray-200 */
+        }
+        
+        .delete-tx-btn, .delete-rule-btn, .delete-account-btn {
+            opacity: 0.3;
+            transition: opacity 0.2s ease;
+            font-weight: bold;
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0.25rem 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-tx-btn:hover, .delete-rule-btn:hover, .delete-account-btn:hover {
+            opacity: 1;
+            color: #EF4444; /* red-500 */
+        }
+        
+        /* V2.0.8 FIX: Force inline content to respect container width */
+        #review-list .col-span-1 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #review-list select,
+        #review-list [contenteditable] {
+            max-width: 100%;
+        }
+
+
+        /* --- V1.9: Delete Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+        /* V2.1.0: Dark mode for modals */
+        html.dark .modal-content {
+            background: #4B5563; /* gray-600 equivalent */
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+    </style>
+
+</head>
+<body class="bg-gray-100 h-full font-sans dark:text-gray-100"> <div id="login-page" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+            <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">Sign in to your Dashboard</h2>
+        </div>
+
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            <div class="space-y-6">
+                <div>
+                    <label for="email-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Email address</label>
+                    <div class="mt-2">
+                        <input id="email-input" name="email" type="email" autocomplete="email" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label for="password-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Password</label>
+                    </div>
+                    <div class="mt-2">
+                        <input id="password-input" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                    </div>
+                </div>
+                
+                <div id="auth-error" class="hidden text-sm font-medium text-red-600"></div>
+
+                <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
+                    <button id="signin-btn" class="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Sign In</button>
+                    <button id="signup-btn" class="flex w-full justify-center rounded-md bg-gray-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">Sign Up</button>
+                </div>
+                
+                <div class="relative">
+                  <div class="relative flex justify-center text-sm">
+                    <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Or continue with</span>
+                  </div>
+                </div>
+
+                <div>
+                  <button id="google-signin-btn" class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 click-tracking-id-google-signin-btn dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
+<svg class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
+  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+                    <span>Google</span>
+                  </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-page" class="hidden container mx-auto p-4 space-y-6">
+        
+        <div class="flex flex-wrap justify-between items-center gap-4">
+            <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-400">MyFinance Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <svg id="sun-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg id="moon-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+                
+                <span id="user-email-display" class="text-gray-600 dark:text-gray-300 text-sm"></span>
+                <button id="signout-btn" class="rounded-md bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-500">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Financial Overview</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-sm font-medium text-green-600">Total Assets</p>
+                        <p id="total-assets" class="text-2xl font-bold text-green-600">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-red-600">Total Liabilities</p>
+                        <p id="total-liabilities" class="text-2xl font-bold text-red-600">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-blue-700">Net Worth</p>
+                        <p id="net-worth" class="text-2xl font-bold text-blue-700">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-purple-700 dark:text-purple-400">Your Financial Focus</h2>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <span class="text-lg mr-2">🎯</span>
+                        <p id="focus-debt-target" class="text-gray-700 dark:text-gray-300">Your debt plan is loading...</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-lg mr-2">💸</span>
+                        <p id="focus-leftover-cash" class="text-gray-700 dark:text-gray-300">Your monthly forecast is calculating...</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-lg mr-2">🔥</span>
+                        <p id="focus-budget-hotspot" class="text-gray-700 dark:text-gray-300">Analyzing your budget...</p>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-lg mr-2">🛒</span>
+                        <p id="focus-top-spending" class="text-gray-700 dark:text-gray-300">Analyzing your spending...</p>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Import Transactions</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Upload a .csv file from your bank to map columns, review, and import.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="csv-file-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">CSV File</label>
+                        <div class="mt-2">
+                             <input id="csv-file-input" type="file" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-200 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium dark:bg-gray-600 dark:text-white dark:border-gray-500 file:dark:bg-gray-700 file:dark:text-gray-200">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="import-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Import to Account</label>
+                        <div class="mt-2">
+                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="">Select an account</option>
+                                </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="import-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Default Category (for uncategorized)</label>
+                        <div class="mt-2">
+                            <select id="import-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="Other">Other (default)</option>
+                                <option value="Income">Income</option>
+                                <option value="Housing">Housing</option>
+                                <option value="Groceries">Groceries</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Debt Payment">Debt Payment</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Eating Out">Eating Out</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="csv-map-section" class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-600">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200">Step 2: Map Your Columns</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Match your CSV columns to the required fields.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="map-date-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Column</label>
+                                <select id="map-date-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                            </div>
+                             <div>
+                                <label for="map-desc-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description Column</label>
+                                <select id="map-desc-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                            </div>
+                             <div>
+                                <label for="map-amount-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount Column</label>
+                                <select id="map-amount-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                            </div>
+                        </div>
+                        <div>
+                             <label for="map-date-format" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Format</label>
+                             <select id="map-date-format" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+                             </select>
+                        </div>
+
+                        <button id="review-csv-btn" class="flex w-full justify-center rounded-md bg-purple-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-purple-500">Review Transactions</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Review & Confirm Import</h2>
+                <div id="review-container" class="space-y-3 max-h-64 overflow-y-auto">
+                    <p id="review-placeholder" class="text-gray-500 dark:text-gray-400">Awaiting file to review...</p>
+                    <ul id="review-list" class="space-y-2">
+                        </ul>
+                </div>
+                <button id="confirm-import-btn" class="hidden mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Confirm & Import Transactions</button>
+                <div id="import-error" class="hidden text-sm font-medium text-red-600 mt-2"></div>
+                <div id="import-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center"></div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Add New Account</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="account-name-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Name</label>
+                        <div class="mt-2">
+                            <input id="account-name-input" type="text" placeholder="e.g., Chase Checking" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="account-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Type</label>
+                        <div class="mt-2">
+                            <select id="account-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="asset">Asset (e.g., Checking, Savings)</option>
+                                <option value="liability">Liability (e.g., Credit Card, Loan)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="account-balance-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Current Balance</label>
+                        <div class="mt-2">
+                            <input id="account-balance-input" type="number" step="0.01" placeholder="1000.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        </div>
+                    </div>
+
+                    <div id="liability-fields" class="space-y-4">
+                        <div>
+                            <label for="account-apr-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Interest Rate (APR) % <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
+                            <div class="mt-2">
+                                <input id="account-apr-input" type="number" step="0.01" placeholder="21.99" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="account-min-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Minimum Monthly Payment $ <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
+                            <div class="mt-2">
+                                <input id="account-min-payment-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="add-account-btn" class="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Add Account</button>
+                    <div id="account-error" class="hidden text-sm font-medium text-red-600"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Log New Transaction</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="tx-desc-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description</label>
+                        <div class="mt-2">
+                            <input id="tx-desc-input" type="text" placeholder="e.g., Groceries, Paycheck" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="tx-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Type</label>
+                            <div class="mt-2">
+                                <select id="tx-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </sélect>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="tx-amount-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount</label>
+                            <div class="mt-2">
+                                <input id="tx-amount-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="tx-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Category</Gabel>
+                        <div class="mt-2">
+                            <select id="tx-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="">Select a category</option>
+                                </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="tx-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account</Gabel>
+                        <div class="mt-2">
+                            <select id="tx-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                <option value="">Select an account</option>
+                                </select>
+                        </div>
+                    </div>
+                    
+                    <button id="add-tx-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Transaction</button>
+                    <div id="tx-error" class="hidden text-sm font-medium text-red-600"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-green-600">Assets</h2>
+                <ul id="asset-list" class="space-y-2">
+                    <li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-red-600">Liabilities</h2>
+                <ul id="liability-list" class="space-y-4">
+                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
+                <div class="flex space-x-2 mb-4">
+                    <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+                        Debt Snowball
+                        <span class="block text-xs font-normal opacity-75">(Lowest Balance First)</span>
+                    </button>
+                    <button id="avalanche-btn" class="flex-1 justify-center rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-400">
+                        Debt Avalanche
+                        <span class="block text-xs font-normal opacity-75">(Highest APR First)</span>
+                    </button>
+                </div>
+                
+                <ul id="debt-plan-list" class="space-y-4">
+                    <li class="text-gray-500 dark:text-gray-400">No debts with APR/Balance info added yet.</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Monthly Budget</h2>
+                <div id="budget-container" class="space-y-4">
+                    <p class="text-gray-500 dark:text-gray-400">Loading budget...</p>
+                </div>
+                <button id="save-budget-btn" class="mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Save Budget</button>
+                <div id="budget-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center">Budget saved!</div>
+            </div>
+            
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+            <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Categorization Rules</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Add New Rule</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="rule-keyword-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">If text contains...</label>
+                            <div class="mt-2">
+                                <input id="rule-keyword-input" type="text" placeholder="e.g., Kroger, Chevron" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="rule-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Assign to category...</label>
+                            <div class="mt-2">
+                                <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    <option value="">Select a category</option>
+                                    </select>
+                            </div>
+                        </div>
+                        <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
+                        <div id="rule-error" class="hidden text-sm font-medium text-red-600"></div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Your Rules</h3>
+                    <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
+                        <ul id="rule-list" class="space-y-2">
+                            </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <div>
+                    <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
+                    <ul id="tx-list" class="space-y-3">
+                        <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Spending by Category</h2>
+                    <div class="relative flex justify-center items-center h-64 lg:h-full min-h-[250px]">
+                        <canvas id="category-chart"></canvas>
+                        <p id="chart-placeholder" class="text-gray-500 absolute dark:text-gray-400">Log some expenses to see your spending chart.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+    <div id="delete-account-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="text-lg font-semibold text-red-600">Delete Account</h3>
+            <p id="delete-modal-message" class="mt-2 text-sm text-gray-700 dark:text-gray-300">Are you sure? This will also delete all transactions for this account. This cannot be undone.</p>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-delete-btn" class="rounded-md bg-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                    Cancel
+                </button>
+                <button id="confirm-delete-btn" class="rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                    Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- V1.8: NO MORE INLINED OFX-JS ---
+
+        // --- FILE: main.js (INLINED) ---
+        console.log("DEBUG: main.js script started. Attempting to load Firebase modules...");
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            setLogLevel,
+            collection,
+            addDoc,
+            query,
+            onSnapshot,
+            Timestamp,
+            doc,
+            runTransaction,
+            orderBy,
+            limit,
+            setDoc, 
+            getDoc,
+            writeBatch,
+            deleteDoc,
+            getDocs, // --- V1.9 ---
+            where    // --- V1.9 ---
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        console.log("DEBUG: Firebase modules loaded successfully.");
+
+        // --- PASTE YOUR REAL FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyA5q8JjB8xfxtbrnY_vKa7WleODpCIPLww",
+          authDomain: "myfinance-dashboard.firebaseapp.com",
+          projectId: "myfinance-dashboard",
+          storageBucket: "myfinance-dashboard.firebasestorage.app",
+          messagingSenderId: "71253747465",
+          appId: "1:71253747465:web:793f2ecc8c6a593e0d95d8"
+        };
+        // ------------------------------------------
+
+        // --- INITIALIZE FIREBASE (PHASE 1) ---
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('Debug');
+            console.log("DEBUG: Firebase App, Auth, and DB initialized.");
+        } catch (e) {
+            console.error("CRITICAL ERROR DURING FIREBASE INIT:", e);
+            alert("A critical error occurred while initializing Firebase. This can happen if your firebaseConfig keys are incorrect. " + e.message);
+        }
+
+        // --- GLOBAL STATE ---
+        let accountsListenerUnsubscribe = null;
+        let transactionsListenerUnsubscribe = null;
+        let budgetListenerUnsubscribe = null; 
+        let rulesListenerUnsubscribe = null; 
+        
+        let userAccounts = []; 
+        let userRules = []; 
+        
+        let debtSortStrategy = 'snowball'; 
+        let categoryChart = null; 
+        let currentBudget = {}; 
+        let currentCategoryTotals = {}; 
+        let totalIncome = 0; 
+        
+        // V2.0.4 FIX: Put 'Other' at the start of the budget categories list.
+        const budgetCategories = ['Other', 'Housing', 'Groceries', 'Utilities', 'Transportation', 'Debt Payment', 'Shopping', 'Eating Out'];
+        
+        // V2.0.4: Regenerate the HTML based on the fixed list
+        const expenseCategoryOptionsHTML = budgetCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+        const txCategoryOptionsHTML = `<option value="">Select a category</option><option value="Income">Income</option>${expenseCategoryOptionsHTML}`;
+        
+        // --- CSV / Import State ---
+        let rawCsvData = []; // To store the raw CSV rows
+        let csvHeaders = []; // To store the parsed headers
+        let parsedImportTransactions = []; // This is our "state" for the review list
+        let importTargetAccount = null; 
+        let importTargetCategory = "Other"; 
+
+        // --- ELEMENT REFERENCES ---
+        // Auth Page
+        const loginPage = document.getElementById('login-page');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const signupBtn = document.getElementById('signup-btn');
+        const signinBtn = document.getElementById('signin-btn');
+        const googleSigninBtn = document.getElementById('google-signin-btn');
+        const authError = document.getElementById('auth-error');
+
+        // Dashboard Page
+        const dashboardPage = document.getElementById('dashboard-page');
+        const signoutBtn = document.getElementById('signout-btn');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        
+        // V2.1.0: Theme toggle elements
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        
+        // Overview Card
+        const totalAssetsEl = document.getElementById('total-assets');
+        const totalLiabilitiesEl = document.getElementById('total-liabilities');
+        const netWorthEl = document.getElementById('net-worth');
+        
+        // Focus Card
+        const focusDebtTarget = document.getElementById('focus-debt-target');
+        const focusLeftoverCash = document.getElementById('focus-leftover-cash');
+        const focusBudgetHotspot = document.getElementById('focus-budget-hotspot');
+        const focusTopSpending = document.getElementById('focus-top-spending');
+        
+        // --- V1.8: CSV IMPORT ELEMENTS ---
+        const csvFileInput = document.getElementById('csv-file-input');
+        const csvMapSection = document.getElementById('csv-map-section');
+        const mapDateSelect = document.getElementById('map-date-select');
+        const mapDescSelect = document.getElementById('map-desc-select');
+        const mapAmountSelect = document.getElementById('map-amount-select');
+        const mapDateFormat = document.getElementById('map-date-format');
+        const reviewCsvBtn = document.getElementById('review-csv-btn');
+        
+        const reviewContainer = document.getElementById('review-container'); // Renamed
+        const reviewPlaceholder = document.getElementById('review-placeholder'); // Renamed
+        const reviewList = document.getElementById('review-list'); // Renamed
+        
+        const confirmImportBtn = document.getElementById('confirm-import-btn');
+        const importError = document.getElementById('import-error');
+        const importSuccessEl = document.getElementById('import-success'); 
+        const importAccountSelect = document.getElementById('import-account-select'); 
+        const importCategorySelect = document.getElementById('import-category-select'); 
+        
+        // Add Account Form
+        const addAccountBtn = document.getElementById('add-account-btn');
+        const accountNameInput = document.getElementById('account-name-input');
+        const accountTypeSelect = document.getElementById('account-type-select');
+        const accountBalanceInput = document.getElementById('account-balance-input');
+        const accountError = document.getElementById('account-error');
+        const liabilityFields = document.getElementById('liability-fields');
+        const accountAprInput = document.getElementById('account-apr-input');
+        const accountMinPaymentInput = document.getElementById('account-min-payment-input');
+        
+        // Account Lists
+        const assetList = document.getElementById('asset-list');
+        const liabilityList = document.getElementById('liability-list');
+        
+        // Transaction Form
+        const addTxBtn = document.getElementById('add-tx-btn');
+        const txDescInput = document.getElementById('tx-desc-input');
+        const txTypeSelect = document.getElementById('tx-type-select');
+        const txAmountInput = document.getElementById('tx-amount-input');
+        const txAccountSelect = document.getElementById('tx-account-select');
+        const txCategorySelect = document.getElementById('tx-category-select'); 
+        const txError = document.getElementById('tx-error');
+        
+        // Transaction List
+        const txList = document.getElementById('tx-list');
+        
+        // Debt Planner Elements
+        const debtPlanList = document.getElementById('debt-plan-list');
+        const snowballBtn = document.getElementById('snowball-btn');
+        const avalancheBtn = document.getElementById('avalanche-btn');
+        
+        // Chart Elements
+        const categoryChartCanvas = document.getElementById('category-chart');
+        const chartPlaceholder = document.getElementById('chart-placeholder');
+        
+        // Budget Elements
+        const budgetContainer = document.getElementById('budget-container');
+        const saveBudgetBtn = document.getElementById('save-budget-btn');
+        const budgetSuccessEl = document.getElementById('budget-success');
+        
+        // Rules Engine Elements
+        const ruleKeywordInput = document.getElementById('rule-keyword-input');
+        const ruleCategorySelect = document.getElementById('rule-category-select');
+        const addRuleBtn = document.getElementById('add-rule-btn');
+        const ruleError = document.getElementById('rule-error');
+        const ruleListPlaceholder = document.getElementById('rule-list-placeholder');
+        const ruleList = document.getElementById('rule-list');
+        
+        // --- NEW V1.9: Delete Modal Elements ---
+        const deleteModal = document.getElementById('delete-account-modal');
+        const deleteModalMessage = document.getElementById('delete-modal-message');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        
+        console.log("DEBUG: All HTML elements grabbed.");
+        
+        // --- V2.1.0: DARK MODE LOGIC ---
+        function setDarkTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            }
+        }
+
+        // Initialize theme based on local storage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+             setDarkTheme(true);
+        } else {
+             setDarkTheme(false);
+        }
+
+        // Toggle button handler
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            setDarkTheme(!isDark);
+        });
+
+        // --- END DARK MODE LOGIC ---
+
+        // --- HELPER FUNCTIONS ---
+        
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(value);
+        };
+        
+        // --- UPDATED: Simpler Date parser ---
+        const parseDate = (dateString, format) => {
+            try {
+                let day, month, year;
+                const parts = dateString.split(/[\/\-]/); // Split by / or -
+                
+                if (format === 'MM/DD/YYYY' || format === 'MM-DD-YYYY') {
+                    month = parseInt(parts[0], 10) - 1; // Month is 0-indexed
+                    day = parseInt(parts[1], 10);
+                    year = parseInt(parts[2], 10);
+                } else if (format === 'DD/MM/YYYY') {
+                    day = parseInt(parts[0], 10);
+                    month = parseInt(parts[1], 10) - 1;
+                    year = parseInt(parts[2], 10);
+                } else { // YYYY-MM-DD
+                    year = parseInt(parts[0], 10);
+                    month = parseInt(parts[1], 10) - 1;
+                    day = parseInt(parts[2], 10);
+                }
+                
+                const date = new Date(year, month, day);
+                // Basic validation
+                if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+                    throw new Error("Invalid date components");
+                }
+                return date;
+            } catch (e) {
+                console.warn(`Could not parse date: ${dateString} with format ${format}`, e);
+                return new Date(); // Fallback to now
+            }
+        };
+        
+        function showPage(pageId) {
+            if (pageId === 'login') {
+                loginPage.classList.remove('hidden');
+                dashboardPage.classList.add('hidden');
+            } else if (pageId === 'dashboard') {
+                loginPage.classList.add('hidden');
+                dashboardPage.classList.remove('hidden');
+            }
+        }
+
+        function showAuthError(message) {
+            authError.textContent = message;
+            authError.classList.remove('hidden');
+        }
+        
+        function showAccountError(message) {
+            accountError.textContent = message;
+            accountError.classList.remove('hidden');
+        }
+
+        function showTxError(message) {
+            txError.textContent = message;
+            txError.classList.remove('hidden');
+        }
+        
+        function showImportError(message) {
+            importError.textContent = message;
+            importError.classList.remove('hidden');
+        }
+        
+        function showRuleError(message) {
+            ruleError.textContent = message;
+            ruleError.classList.remove('hidden');
+        }
+        
+        // --- AUTH LOGIC (PHASE 2) ---
+
+        // 1. Sign Up Button
+        signupBtn.addEventListener('click', async () => {
+            authError.classList.add('hidden');
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) {
+                showAuthError("Please enter both an email and a password.");
+                return;
+            }
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    showAuthError("This email already exists. Please try 'Sign In'.");
+                } else if (error.code === 'auth/weak-password') {
+                    showAuthError("Password is too weak. Must be at least 6 characters.");
+                } else {
+                    showAuthError("Error: " + error.message);
+                }
+            }
+        });
+
+        // 2. Sign In Button
+        signinBtn.addEventListener('click', async () => {
+            authError.classList.add('hidden');
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) {
+                showAuthError("Please enter both an email and a password.");
+                return;
+            }
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                showAuthError("Wrong email or password. Please try again.");
+            }
+        });
+
+        // 3. Google Sign In Button
+        googleSigninBtn.addEventListener('click', async () => {
+            authError.classList.add('hidden');
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showAuthError("Error signing in with Google: " + error.message);
+            }
+        });
+
+        // 4. Sign Out Button
+        signoutBtn.addEventListener('click', async () => {
+            // Unsubscribe from all listeners
+            if (accountsListenerUnsubscribe) accountsListenerUnsubscribe();
+            if (transactionsListenerUnsubscribe) transactionsListenerUnsubscribe();
+            if (budgetListenerUnsubscribe) budgetListenerUnsubscribe();
+            if (rulesListenerUnsubscribe) rulesListenerUnsubscribe(); 
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign Out Error:", error);
+            }
+        });
+
+        // 5. The "Brain": Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is logged in
+                userEmailDisplay.textContent = user.email;
+                showPage('dashboard');
+                
+                // Start listening for this user's data
+                if (db) {
+                    // Populate category dropdowns
+                    txCategorySelect.innerHTML = txCategoryOptionsHTML;
+                    // V2.0.4 Fix: Use the expense list (which now starts with 'Other')
+                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${expenseCategoryOptionsHTML}`;
+                    
+                    initializeBudgetUI(); 
+                    listenForBudget(user.uid);
+                    listenForAccounts(user.uid);
+                    listenForTransactions(user.uid);
+                    listenForRules(user.uid); 
+                } else {
+                    console.error("CRITICAL: db is not initialized!");
+                }
+            } else {
+                // User is logged out
+                showPage('login');
+                if (accountsListenerUnsubscribe) accountsListenerUnsubscribe();
+                if (transactionsListenerUnsubscribe) transactionsListenerUnsubscribe();
+                if (budgetListenerUnsubscribe) budgetListenerUnsubscribe();
+                if (rulesListenerUnsubscribe) rulesListenerUnsubscribe();
+            }
+        });
+        
+        // --- DASHBOARD LOGIC (PHASE 3 & 4) ---
+
+        // Show/Hide Liability Fields
+        accountTypeSelect.addEventListener('change', () => {
+            if (accountTypeSelect.value === 'liability') {
+                liabilityFields.classList.add('show');
+            } else {
+                liabilityFields.classList.remove('show');
+            }
+        });
+
+        // 6. Add Account Button
+        addAccountBtn.addEventListener('click', async () => {
+            accountError.classList.add('hidden');
+            const user = auth.currentUser;
+            if (!user) {
+                showAccountError("Error: You must be logged in.");
+                return;
+            }
+
+            const name = accountNameInput.value;
+            const type = accountTypeSelect.value;
+            const balance = parseFloat(accountBalanceInput.value);
+
+            if (!name || !type || isNaN(balance)) {
+                showAccountError("Please fill out all fields with valid values.");
+                return;
+            }
+
+            try {
+                const accountData = {
+                    userId: user.uid,
+                    name: name,
+                    type: type,
+                    balance: balance,
+                    createdAt: Timestamp.now()
+                };
+                
+                if (type === 'liability') {
+                    const apr = parseFloat(accountAprInput.value);
+                    const minPayment = parseFloat(accountMinPaymentInput.value);
+                    
+                    if (!isNaN(apr) && apr > 0) {
+                        accountData.apr = apr;
+                    }
+                    if (!isNaN(minPayment) && minPayment > 0) {
+                        accountData.minPayment = minPayment;
+                    }
+                }
+
+                const collectionPath = `users/${user.uid}/accounts`;
+                await addDoc(collection(db, collectionPath), accountData);
+                
+                accountNameInput.value = "";
+                accountBalanceInput.value = "";
+                accountTypeSelect.value = "asset";
+                accountAprInput.value = "";
+                accountMinPaymentInput.value = "";
+                liabilityFields.classList.remove('show');
+
+            } catch (error) {
+                console.error("Error adding account:", error);
+                showAccountError("Error adding account: " + error.message);
+            }
+        });
+
+        // 7. Function to listen for and display accounts
+        function listenForAccounts(userId) {
+            const collectionPath = `users/${userId}/accounts`;
+            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
+
+            accountsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                assetList.innerHTML = "";
+                liabilityList.innerHTML = "";
+                txAccountSelect.innerHTML = '<option value="">Select an account</option>'; 
+                importAccountSelect.innerHTML = '<option value="">Select an account</option>'; 
+                userAccounts = []; 
+                
+                let assetCount = 0, liabilityCount = 0;
+                let totalAssets = 0, totalLiabilities = 0;
+
+                snapshot.forEach((doc) => {
+                    const account = doc.data();
+                    const accountId = doc.id;
+                    
+                    // --- V2.0: We now store the full account object, including csvMapping ---
+                    userAccounts.push({ id: accountId, ...account }); 
+                    
+                    const optionEl = document.createElement('option');
+                    optionEl.value = accountId;
+                    optionEl.textContent = `${account.name} (${account.type})`;
+                    txAccountSelect.appendChild(optionEl);
+                    importAccountSelect.appendChild(optionEl.cloneNode(true)); 
+
+                    const accountEl = document.createElement('li');
+                    accountEl.className = "flex justify-between items-center"; // --- V1.9: Changed to items-center
+                    
+                    const balanceFormatted = formatCurrency(account.balance);
+                    
+                    if (account.type === 'asset') {
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = "font-medium";
+                        nameSpan.textContent = account.name;
+                        
+                        const balanceSpan = document.createElement('span');
+                        balanceSpan.className = "text-gray-600 dark:text-gray-300"; // V2.1.0 Dark Mode
+                        balanceSpan.textContent = balanceFormatted;
+                        
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
+
+                        // --- NEW V1.9: Delete Button ---
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = "delete-account-btn";
+                        deleteBtn.innerHTML = "&times;";
+                        deleteBtn.dataset.id = accountId;
+                        deleteBtn.dataset.name = account.name;
+                        deleteBtn.onclick = handleDeleteAccountClick; 
+                        
+                        const controlsDiv = document.createElement('div');
+                        controlsDiv.className = "flex items-center space-x-2";
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
+                        controlsDiv.appendChild(balanceSpan);
+                        controlsDiv.appendChild(deleteBtn);
+                        
+                        accountEl.appendChild(nameSpan);
+                        accountEl.appendChild(controlsDiv);
+                        assetList.appendChild(accountEl);
+                        assetCount++;
+                        totalAssets += account.balance;
+                        
+                    } else { // Liability
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = "font-medium"; 
+                        nameSpan.textContent = account.name;
+
+                        let detailsHtml = `<span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>`; // V2.1.0 Dark Mode
+                        if (account.apr || account.minPayment) {
+                            detailsHtml = `
+                                <div class="text-right">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>
+                                    ${account.apr ? `<p class="text-xs text-gray-500 dark:text-gray-400">${account.apr}% APR</p>` : ''}
+                                    ${account.minPayment ? `<p class="text-xs text-gray-500 dark:text-gray-400">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
+                                </div>
+                            `;
+                        }
+                        
+                        const detailsDiv = document.createElement('div');
+                        detailsDiv.innerHTML = detailsHtml;
+
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
+                        
+                        // --- NEW V1.9: Delete Button ---
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = "delete-account-btn";
+                        deleteBtn.innerHTML = "&times;";
+                        deleteBtn.dataset.id = accountId;
+                        deleteBtn.dataset.name = account.name;
+                        deleteBtn.onclick = handleDeleteAccountClick; 
+                        
+                        const controlsDiv = document.createElement('div');
+                        controlsDiv.className = "flex items-center space-x-2"; 
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
+                        controlsDiv.appendChild(detailsDiv);
+                        controlsDiv.appendChild(deleteBtn);
+                        
+                        accountEl.appendChild(nameSpan);
+                        accountEl.appendChild(controlsDiv);
+                        liabilityList.appendChild(accountEl);
+                        liabilityCount++;
+                        totalLiabilities += account.balance;
+                    }
+                });
+
+                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>';
+                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
+                
+                const netWorth = totalAssets - totalLiabilities;
+                totalAssetsEl.textContent = formatCurrency(totalAssets);
+                totalLiabilitiesEl.textContent = formatCurrency(totalLiabilities);
+                netWorthEl.textContent = formatCurrency(netWorth);
+                
+                netWorthEl.classList.remove('text-blue-700', 'text-red-600', 'text-gray-800', 'text-green-600');
+                if (netWorth > 0) netWorthEl.classList.add('text-green-600');
+                else if (netWorth < 0) netWorthEl.classList.add('text-red-600');
+                else netWorthEl.classList.add('text-gray-800');
+
+                renderDebtPlanner();
+                updateFinancialFocus(); 
+
+            }, (error) => {
+                console.error("Error in accounts listener:", error);
+                assetList.innerHTML = '<li class="text-red-500">Error loading accounts.</li>';
+            });
+        }
+        
+        // 8. Add Transaction Button
+        addTxBtn.addEventListener('click', async () => {
+            txError.classList.add('hidden');
+            const user = auth.currentUser;
+            if (!user) {
+                showTxError("Error: You must be logged in.");
+                return;
+            }
+
+            const description = txDescInput.value;
+            const type = txTypeSelect.value;
+            let amount = parseFloat(txAmountInput.value);
+            const accountId = txAccountSelect.value;
+            const category = txCategorySelect.value; 
+            
+            if (!description || !type || isNaN(amount) || !accountId || !category) {
+                showTxError("Please fill out all fields, including category.");
+                return;
+            }
+            
+            const account = userAccounts.find(acc => acc.id === accountId);
+            if (!account) {
+                showTxError("Error: Selected account not found.");
+                return;
+            }
+            
+            let amountToAdd = 0;
+            if (account.type === 'asset') {
+                amountToAdd = (type === 'expense') ? -Math.abs(amount) : Math.abs(amount);
+            } else { 
+                amountToAdd = (type === 'expense') ? Math.abs(amount) : -Math.abs(amount);
+            }
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const accountRef = doc(db, `users/${user.uid}/accounts`, accountId);
+                    
+                    const accountDoc = await transaction.get(accountRef);
+                    if (!accountDoc.exists()) {
+                        throw "Selected account document does not exist!";
+                    }
+                    const currentBalance = accountDoc.data().balance;
+                    
+                    const newBalance = currentBalance + amountToAdd; 
+                    
+                    transaction.update(accountRef, { balance: newBalance });
+                    
+                    const txData = {
+                        userId: user.uid,
+                        accountId: accountId,
+                        accountName: account.name,
+                        description: description,
+                        amount: (type === 'expense') ? -Math.abs(amount) : Math.abs(amount),
+                        type: type,
+                        category: category, 
+                        createdAt: Timestamp.now()
+                    };
+                    const txCollectionPath = `users/${user.uid}/transactions`;
+                    transaction.set(doc(collection(db, txCollectionPath)), txData);
+                });
+
+                console.log("DEBUG: Transaction successful!");
+                txDescInput.value = "";
+                txAmountInput.value = "";
+                txTypeSelect.value = "expense";
+                txAccountSelect.value = "";
+                txCategorySelect.value = ""; 
+
+            } catch (error) {
+                console.error("Error logging transaction:", error);
+                showTxError("Error logging transaction: " + error.message);
+            }
+        });
+        
+        // --- 9. Listen for Transactions ---
+        function listenForTransactions(userId) {
+            console.log("DEBUG: Starting listener for transactions for user:", userId);
+            
+            const collectionPath = `users/${userId}/transactions`;
+            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
+
+            transactionsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                console.log("DEBUG: Got transactions snapshot.");
+                txList.innerHTML = ""; 
+                const categoryTotals = {}; 
+                let totalIncomeThisPeriod = 0; 
+                let txCount = 0; 
+                
+                if (snapshot.empty) {
+                    txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>'; // V2.1.0 Dark Mode
+                    renderCategoryChart(categoryTotals);
+                    updateBudgetUI(categoryTotals);
+                    updateFinancialFocus(); 
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const tx = doc.data();
+                    const txId = doc.id; 
+                    
+                    if (tx.type === 'income') {
+                        totalIncomeThisPeriod += Math.abs(tx.amount); 
+                    } else if (tx.type === 'expense') { 
+                        // V2.0.3: Ensured correct list of categories is used for totaling
+                        if (budgetCategories.includes(tx.category)) {
+                             categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + Math.abs(tx.amount);
+                        } else {
+                             // Fallback in case of custom category outside budget list
+                             categoryTotals['Other'] = (categoryTotals['Other'] || 0) + Math.abs(tx.amount);
+                        }
+                    }
+
+                    if (txCount < 10) {
+                        const txEl = document.createElement('li');
+                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
+                        
+                        const amountFormatted = formatCurrency(tx.amount);
+                        const amountColor = tx.amount > 0 ? 'text-green-600' : 'text-red-600';
+                        const date = tx.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        
+                        const infoDiv = document.createElement('div');
+                        infoDiv.innerHTML = `
+                            <p class="font-medium">${tx.description}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${tx.accountName} • ${tx.category} • ${date}</p>
+                        `;
+                        
+                        const amountSpan = document.createElement('span');
+                        amountSpan.className = `font-medium ${amountColor}`;
+                        amountSpan.textContent = amountFormatted;
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = "delete-tx-btn";
+                        deleteBtn.innerHTML = "&times;"; 
+                        deleteBtn.onclick = () => handleDeleteTransaction(txId, tx.accountId, tx.amount);
+                        
+                        const amountDiv = document.createElement('div');
+                        amountDiv.className = "flex items-center";
+                        amountDiv.appendChild(amountSpan);
+                        amountDiv.appendChild(deleteBtn);
+
+                        txEl.appendChild(infoDiv);
+                        txEl.appendChild(amountDiv);
+                        txList.appendChild(txEl);
+                        txCount++;
+                    }
+                });
+                
+                if (txCount === 0) { 
+                     txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No recent transactions.</li>'; // V2.1.0 Dark Mode
+                }
+
+                totalIncome = totalIncomeThisPeriod; 
+                currentCategoryTotals = categoryTotals;
+                renderCategoryChart(currentCategoryTotals);
+                updateBudgetUI(currentCategoryTotals);
+                updateFinancialFocus(); 
+
+            }, (error) => {
+                console.error("Error in transactions listener:", error);
+                txList.innerHTML = '<li class="text-red-500">Error loading transactions.</li>';
+            });
+        }
+
+        // --- 10. Handle Delete Transaction ---
+        window.handleDeleteTransaction = async (txId, accountId, amount) => {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to delete transactions.");
+                return;
+            }
+            
+            // --- UPDATED V1.9: Use our custom modal ---
+            const message = `Are you sure you want to delete this ${formatCurrency(amount)} transaction? This will also update your account balance.`;
+            openDeleteModal(message, async () => {
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const txRef = doc(db, `users/${user.uid}/transactions`, txId);
+                        const accountRef = doc(db, `users/${user.uid}/accounts`, accountId);
+                        
+                        const accountDoc = await transaction.get(accountRef);
+                        if (!accountDoc.exists()) {
+                            throw "Account not found! This transaction can't be reversed.";
+                        }
+                        
+                        const accountType = accountDoc.data().type;
+                        const currentBalance = accountDoc.data().balance;
+                        
+                        let amountToRestore = 0;
+                        if (accountType === 'asset') {
+                            amountToRestore = -amount;
+                        } else { 
+                            amountToRestore = amount; 
+                        }
+                        
+                        const newBalance = currentBalance + amountToRestore;
+                        
+                        transaction.update(accountRef, { balance: newBalance });
+                        transaction.delete(txRef);
+                    });
+                    
+                    console.log("DEBUG: Transaction deleted successfully.");
+                    
+                } catch (error) {
+                    console.error("Error deleting transaction:", error);
+                    alert("Error deleting transaction: " + error.message);
+                }
+            });
+        }
+        
+        // --- 11. Render Category Chart ---
+        function renderCategoryChart(categoryTotals) {
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            if (labels.length === 0) {
+                categoryChartCanvas.classList.add('hidden');
+                chartPlaceholder.classList.remove('hidden');
+            } else {
+                categoryChartCanvas.classList.remove('hidden');
+                chartPlaceholder.classList.add('hidden');
+                
+                const ctx = categoryChartCanvas.getContext('2d');
+                categoryChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Spending',
+                            data: data,
+                            backgroundColor: [ 
+                                '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
+                                '#6366F1', '#EC4899', '#8B5CF6', '#F97316', 
+                                '#06B6D4', '#D946EF'
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    boxWidth: 12,
+                                    // V2.1.0: Dark mode text for chart legend
+                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // V2.1.0: Re-render chart on theme change to update colors
+        themeToggleBtn.addEventListener('click', () => {
+             // Toggle theme first
+             const isDark = !document.documentElement.classList.contains('dark');
+             setDarkTheme(isDark);
+             // Then update chart options
+             if (categoryChart) {
+                categoryChart.options.plugins.legend.labels.color = isDark ? '#D1D5DB' : '#4B5563';
+                categoryChart.update();
+             }
+        });
+
+        // --- 12. DEBT PLANNER LOGIC ---
+
+        function updateDebtButtonStyles() {
+            if (debtSortStrategy === 'snowball') {
+                snowballBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                snowballBtn.classList.replace('text-gray-700', 'text-white');
+                snowballBtn.classList.remove('hover:bg-gray-400');
+                
+                avalancheBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                avalancheBtn.classList.replace('text-white', 'text-gray-700');
+                avalancheBtn.classList.add('hover:bg-gray-400');
+            } else { // avalanche
+                avalancheBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                avalancheBtn.classList.replace('text-gray-700', 'text-white');
+                avalancheBtn.classList.remove('hover:bg-gray-400');
+                
+                snowballBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                snowballBtn.classList.replace('text-white', 'text-gray-700');
+                snowballBtn.classList.add('hover:bg-gray-400');
+            }
+        }
+        snowballBtn.addEventListener('click', () => {
+            debtSortStrategy = 'snowball';
+            updateDebtButtonStyles();
+            renderDebtPlanner();
+            updateFinancialFocus(); 
+        });
+        avalancheBtn.addEventListener('click', () => {
+            debtSortStrategy = 'avalanche';
+            updateDebtButtonStyles();
+            renderDebtPlanner();
+            updateFinancialFocus(); 
+        });
+        
+        function getSortedDebts() {
+            let debts = userAccounts.filter(acc => acc.type === 'liability' && acc.balance > 0);
+            
+            if (debtSortStrategy === 'snowball') {
+                debts.sort((a, b) => a.balance - b.balance);
+            } else { 
+                debts.sort((a, b) => (b.apr || 0) - (a.apr || 0));
+            }
+            return debts;
+        }
+
+        function renderDebtPlanner() {
+            debtPlanList.innerHTML = "";
+            const sortedDebts = getSortedDebts(); 
+
+            if (sortedDebts.length === 0) {
+                debtPlanList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>'; // V2.1.0 Dark Mode
+                return;
+            }
+
+            sortedDebts.forEach((debt, index) => {
+                const debtEl = document.createElement('li');
+                debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
+                if (index === 0) {
+                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500', 'dark:bg-gray-600'); // V2.1.0 Dark Mode
+                } else {
+                    debtEl.classList.add('bg-gray-50', 'dark:bg-gray-700'); // V2.1.0 Dark Mode
+                }
+                const balanceFormatted = formatCurrency(debt.balance);
+                const aprInfo = debt.apr ? `${debt.apr}% APR` : 'No APR';
+                const minPmtInfo = debt.minPayment ? `${formatCurrency(debt.minPayment)} min. pmt` : 'No min. pmt';
+
+                debtEl.innerHTML = `
+                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
+                    <div class="flex-1 flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">${debt.name}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${aprInfo} • ${minPmtInfo}</p>
+                        </div>
+                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800 dark:text-gray-200'}">${balanceFormatted}</span>
+                    </div>
+                `;
+                debtPlanList.appendChild(debtEl);
+            });
+        }
+        
+        // --- 13. BUDGET MODULE LOGIC ---
+        
+        function initializeBudgetUI() {
+            budgetContainer.innerHTML = ""; 
+            budgetCategories.forEach(category => {
+                const el = document.createElement('div');
+                el.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">${category}</label>
+                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500 dark:text-gray-400">$0 of $0</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <progress id="budget-progress-${category.toLowerCase().replace(' ', '-')}" value="0" max="100" class="flex-1"></progress>
+                        <div class="relative rounded-md shadow-sm w-28">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <span class="text-gray-500 sm:text-sm">$</span>
+                            </div>
+                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 dark:bg-gray-600 dark:text-white dark:ring-gray-500" placeholder="0">
+                        </div>
+                    </div>
+                `;
+                budgetContainer.appendChild(el);
+            });
+        }
+        
+        saveBudgetBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const newBudget = {};
+            budgetCategories.forEach(category => {
+                const inputEl = document.getElementById(`budget-input-${category.toLowerCase().replace(' ', '-')}`);
+                const amount = parseFloat(inputEl.value) || 0;
+                newBudget[category] = amount;
+            });
+            
+            try {
+                const budgetRef = doc(db, `users/${user.uid}/budget`, 'currentBudget');
+                await setDoc(budgetRef, newBudget, { merge: true });
+                
+                budgetSuccessEl.classList.remove('hidden');
+                setTimeout(() => {
+                    budgetSuccessEl.classList.add('hidden');
+                }, 2000);
+                
+            } catch (error) {
+                console.error("Error saving budget:", error);
+                alert("Error saving budget: " + error.message);
+            }
+        });
+        
+        function listenForBudget(userId) {
+            const budgetRef = doc(db, `users/${userId}/budget`, 'currentBudget');
+            budgetListenerUnsubscribe = onSnapshot(budgetRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentBudget = docSnap.data();
+                } else {
+                    currentBudget = {}; 
+                }
+                updateBudgetUI(currentCategoryTotals); 
+                updateFinancialFocus(); 
+            }, (error) => {
+                console.error("Error listening for budget:", error);
+            });
+        }
+        
+        function updateBudgetUI(categoryTotals) {
+            budgetCategories.forEach(category => {
+                const budgetAmount = currentBudget[category] || 0;
+                const spentAmount = categoryTotals[category] || 0;
+                
+                const key = category.toLowerCase().replace(' ', '-');
+                const inputEl = document.getElementById(`budget-input-${key}`);
+                const progressEl = document.getElementById(`budget-progress-${key}`);
+                const textEl = document.getElementById(`budget-text-${key}`);
+                
+                if (!inputEl || !progressEl || !textEl) return; 
+
+                if (document.activeElement !== inputEl) {
+                     inputEl.value = budgetAmount > 0 ? budgetAmount : '';
+                }
+                
+                progressEl.value = spentAmount;
+                progressEl.max = budgetAmount > 0 ? budgetAmount : 1; 
+                
+                textEl.textContent = `${formatCurrency(spentAmount)} of ${formatCurrency(budgetAmount)}`;
+                
+                progressEl.classList.remove('over-budget');
+                textEl.classList.remove('text-red-500');
+                if (spentAmount > budgetAmount && budgetAmount > 0) {
+                    progressEl.classList.add('over-budget');
+                    textEl.classList.add('text-red-500', 'font-medium');
+                } else {
+                    textEl.classList.remove('text-red-500', 'font-medium');
+                }
+            });
+        }
+        
+        // --- 14. FINANCIAL FOCUS "BRAIN" ---
+        
+        function updateFinancialFocus() {
+            // 1. Debt Target
+            const sortedDebts = getSortedDebts();
+            if (sortedDebts.length > 0) {
+                const targetDebt = sortedDebts[0];
+                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600 dark:text-purple-400">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600 dark:text-purple-400">${targetDebt.name}</strong>.`;
+            } else {
+                focusDebtTarget.innerHTML = `You have no debts! 🎉 Focus on building your assets.`;
+            }
+            
+            // 2. Leftover Cash
+            let totalBudgeted = 0;
+            // V2.0.4 Fix: Use the expense categories list for total budgeted amount
+            budgetCategories.forEach(category => {
+                if(category !== 'Other') {
+                    totalBudgeted += currentBudget[category] || 0;
+                }
+            });
+
+            const leftover = totalIncome - totalBudgeted;
+            if (totalIncome > 0 || totalBudgeted > 0) {
+                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700 dark:text-gray-300">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
+            } else {
+                focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
+            }
+
+            // 3. Budget Hotspot
+            let hotspot = { category: null, percent: 0 };
+            budgetCategories.forEach(category => {
+                if (category === 'Other') return; // Skip the 'Other' category for hotspot tracking
+                
+                const budget = currentBudget[category] || 0;
+                const spent = currentCategoryTotals[category] || 0;
+                if (budget > 0) {
+                    const percent = (spent / budget) * 100;
+                    if (percent > hotspot.percent) {
+                        hotspot = { category, percent };
+                    }
+                }
+            });
+            
+            if (hotspot.percent > 75) {
+                focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-red-600">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
+            } else if (hotspot.percent > 0) {
+                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
+            } else {
+                focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
+            }
+            
+            // 4. Top Spending
+            let topSpending = { category: null, amount: 0 };
+            Object.entries(currentCategoryTotals).forEach(([category, amount]) => {
+                if (amount > topSpending.amount) {
+                    topSpending = { category, amount };
+                }
+            });
+
+            if (topSpending.amount > 0) {
+                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600 dark:text-purple-400">${topSpending.category}</strong> at <strong class="text-purple-600 dark:text-purple-400">${formatCurrency(topSpending.amount)}</strong>.`;
+            } else {
+                focusTopSpending.innerHTML = `Log some expenses to see your top spending category.`;
+            }
+        }
+        
+        // --- 15. CSV IMPORT LOGIC (V1.8 / V2.0 UPGRADES) ---
+        
+        // --- V2.0: New Helper Function for Auto-Guessing ---
+        function autoGuessMapping(headers) {
+            mapDateSelect.value = headers.findIndex(h => h.toLowerCase().includes('date'));
+            mapDescSelect.value = headers.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo'));
+            mapAmountSelect.value = headers.findIndex(h => h.toLowerCase().includes('amount'));
+        }
+        
+        // --- V2.0: Smarter CSV Parser ---
+        function parseCSV(text) {
+            const rows = [];
+            // Remove \r and split by \n
+            const lines = text.replace(/\r/g, '').split('\n');
+            
+            // Regex to split CSV row, handling quoted fields
+            // It looks for: ("quoted fields" | non-comma fields) followed by a comma or end-of-line
+            const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+            
+            for (const line of lines) {
+                if (line.trim() === '') continue;
+                
+                const row = [];
+                let match;
+                
+                // Reset regex index for each new line
+                regex.lastIndex = 0; 
+                
+                while ((match = regex.exec(line)) !== null) {
+                    let value = match[1];
+                    
+                    // Clean up: remove surrounding quotes
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    
+                    // Handle double quotes inside a quoted field (e.g., "12"" tall")
+                    value = value.replace(/""/g, '"'); 
+                    
+                    row.push(value.trim());
+                }
+                
+                if (row.length > 0) {
+                    rows.push(row);
+                }
+            }
+            return rows;
+        }
+
+        csvFileInput.addEventListener('change', (event) => {
+            importError.classList.add('hidden');
+            importSuccessEl.classList.add('hidden');
+            
+            const file = event.target.files[0];
+            const accountId = importAccountSelect.value;
+            
+            if (!file) {
+                showImportError("Please select a .csv file first.");
+                return;
+            }
+            if (!accountId) {
+                showImportError("Please select an account to import these transactions into.");
+                csvFileInput.value = ""; // Reset file input
+                return;
+            }
+            
+            const selectedAccount = userAccounts.find(acc => acc.id === accountId);
+            if (!selectedAccount) {
+                 showImportError("Selected account not found.");
+                 return;
+            }
+            
+            importTargetAccount = selectedAccount; // --- V2.0: importTargetAccount now has .csvMapping (if it exists)
+            importTargetCategory = importCategorySelect.value || 'Other';
+            
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const fileContent = e.target.result;
+                try {
+                    rawCsvData = parseCSV(fileContent); // --- V2.0: Using new smart parser
+                    if (rawCsvData.length < 2) {
+                        showImportError("This CSV is empty or only has a header row.");
+                        return;
+                    }
+                    
+                    csvHeaders = rawCsvData[0];
+                    
+                    // Populate column mapping dropdowns
+                    const headerOptions = csvHeaders.map((header, index) => 
+                        `<option value="${index}">${header}</option>`
+                    ).join('');
+                    
+                    mapDateSelect.innerHTML = headerOptions;
+                    mapDescSelect.innerHTML = headerOptions;
+                    mapAmountSelect.innerHTML = headerOptions;
+                    
+                    // --- V2.0: Check for saved mapping ---
+                    if (importTargetAccount && importTargetAccount.csvMapping) {
+                        console.log("DEBUG: V2.0 - Found saved mapping for this account. Applying it.");
+                        
+                        const mapping = importTargetAccount.csvMapping;
+                        
+                        // Check if saved indices are still valid for *this* file
+                        if (mapping.dateIndex < csvHeaders.length &&
+                            mapping.descIndex < csvHeaders.length &&
+                            mapping.amountIndex < csvHeaders.length) {
+                            
+                            mapDateSelect.value = mapping.dateIndex;
+                            mapDescSelect.value = mapping.descIndex;
+                            mapAmountSelect.value = mapping.amountIndex;
+                            mapDateFormat.value = mapping.dateFormat;
+
+                            // Show the mapping section (briefly, so user sees it's populated)
+                            csvMapSection.classList.add('show');
+                            
+                            // Auto-click the "Review" button to move to the next step
+                            console.log("DEBUG: V2.0 - Auto-clicking review button.");
+                            reviewCsvBtn.click(); 
+                            
+                        } else {
+                            console.warn("V2.0 - Saved mapping is invalid for this file's headers. Resetting to auto-guess.");
+                            // Mapping is invalid, fall back to default auto-guess
+                            autoGuessMapping(csvHeaders);
+                            csvMapSection.classList.add('show');
+                        }
+                        
+                    } else {
+                        console.log("DEBUG: V2.0 - No saved mapping found. Auto-guessing.");
+                        
+                        // Auto-guess columns (using new helper)
+                        autoGuessMapping(csvHeaders);
+
+                        // Show the mapping section
+                        csvMapSection.classList.add('show');
+                    }
+                    // --- End V2.0 ---
+                    
+                } catch (err) {
+                    console.error("CSV Parse Error:", err);
+                    showImportError(`Error parsing file: ${err.message}.`);
+                }
+            };
+            
+            reader.onerror = () => {
+                showImportError("Error reading the file.");
+            };
+            
+            reader.readAsText(file);
+        });
+        
+        // --- V2.0.3 FIX: Utility function to clean transaction descriptions ---
+        function cleanTransactionName(name) {
+            if (!name) return "";
+            // 1. Remove common bank/account/card info (e.g., numbers, "Card", "Debit")
+            let cleaned = name.replace(/(Card|Debit|Withdrawal|Ref|Auth|FP|#|No)\s*[\d\s]*/gi, '');
+            // 2. Remove Phone numbers and Dates (looks for common phone/date formats)
+            cleaned = cleaned.replace(/\s*\b\d{3}[-\s]\d{3}[-\s]\d{4}\b\s*/g, ' '); // 801-441-5000
+            cleaned = cleaned.replace(/\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*/g, ' '); // 11/03/25
+            // 3. Remove leading/trailing non-alphanumeric noise, and multiple spaces
+            cleaned = cleaned.replace(/[^a-zA-Z0-9\s-]+/g, ' ').trim().replace(/\s+/g, ' ');
+            // 4. Return the cleaned, uppercased string
+            return cleaned.toUpperCase();
+        }
+
+        // --- V2.0.6 FIX: Rule check is now 100% reliant on the cleaned name ---
+        function applyRulesToCsvTransactions(transactions) {
+            let defaultExpenseCategory = importCategorySelect.value || 'Other';
+            
+            // Ensure the default is a valid expense category
+            if (defaultExpenseCategory === 'Income') {
+                defaultExpenseCategory = 'Other';
+            }
+            
+            return transactions.map((tx, index) => {
+                // V2.0.6 FIX: Clean the name immediately for the rule check
+                const cleanedNameForMatch = cleanTransactionName(tx.name);
+                
+                let assignedCategory; 
+                const type = tx.amount > 0 ? 'income' : 'expense';
+                
+                if (type === 'income') {
+                    assignedCategory = 'Income';
+                } else {
+                    assignedCategory = defaultExpenseCategory; 
+                    
+                    // Apply user-defined rules to the CLEANED name
+                    for (const rule of userRules) {
+                        // V2.0.6: We check if the CLEANED name INCLUDES the rule's keyword (which is also UPPERCASE)
+                        if (cleanedNameForMatch.includes(rule.keyword)) { 
+                            assignedCategory = rule.category; 
+                            break; 
+                        }
+                    }
+                }
+                
+                tx.category = assignedCategory; 
+                return tx;
+            });
+        }
+        
+        // --- Helper to re-apply rules to the LIVE review list ---
+        function applyRulesAndRerenderReviewList() {
+            if (parsedImportTransactions.length === 0) return; // Nothing to review
+            
+            // 1. Re-apply rules to the in-memory list
+            parsedImportTransactions = applyRulesToCsvTransactions(parsedImportTransactions);
+            
+            // 2. Re-render the *entire* review list with the new data
+            renderReviewList(parsedImportTransactions);
+        }
+        
+        
+        reviewCsvBtn.addEventListener('click', () => {
+            // This button now processes the mapping
+            importError.classList.add('hidden');
+            const dateIndex = mapDateSelect.value;
+            const descIndex = mapDescSelect.value;
+            const amountIndex = mapAmountSelect.value;
+            const dateFormat = mapDateFormat.value;
+            
+            if (!dateIndex || !descIndex || !amountIndex) {
+                showImportError("Please map all three columns: Date, Description, and Amount.");
+                return;
+            }
+            
+            // Process the raw CSV data (skipping header row)
+            const transactions = rawCsvData.slice(1).map((row, index) => {
+                return {
+                    id: `import-tx-${index}`,
+                    // V2.0.3: Store the original description 
+                    name: row[descIndex] || "Imported Transaction", 
+                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, // Clean up amount
+                    date: row[dateIndex],
+                    dateFormat: dateFormat // Pass format for later
+                };
+            }).filter(tx => tx.amount !== 0); // Filter out rows with no amount
+            
+            // parsedImportTransactions is now our global "state"
+            parsedImportTransactions = applyRulesToCsvTransactions(transactions);
+            renderReviewList(parsedImportTransactions); // Render the list
+        });
+        
+        
+        // --- V2.0.7 FIX: Cleaned up array iteration and event listener binding ---
+        function renderReviewList(transactions) {
+            reviewList.innerHTML = ""; 
+            
+            if (transactions.length === 0) {
+                reviewPlaceholder.textContent = "No transactions found in this file.";
+                reviewPlaceholder.classList.remove('hidden');
+                confirmImportBtn.classList.add('hidden');
+                return;
+            }
+            
+            reviewPlaceholder.classList.add('hidden');
+            let totalAmount = 0;
+            
+            transactions.forEach(tx => {
+                const amount = tx.amount;
+                totalAmount += amount;
+                const date = tx.date; 
+                const name = tx.name;
+                
+                const amountColor = amount > 0 ? 'text-green-600' : 'text-red-600';
+                
+                // 1. Create the container LI
+                const li = document.createElement('li');
+                li.className = "p-2 border-b border-gray-200 grid grid-cols-3 gap-2 items-center";
+                
+                // 2. Create the Name/Date div with editable Span (V2.0.6/V2.0.7)
+                const nameDiv = document.createElement('div');
+                nameDiv.className = "col-span-1";
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('font-medium', 'truncate', 'w-full', 'block', 'cursor-text'); // V2.0.8 added w-full, block, cursor-text
+                nameSpan.setAttribute('contenteditable', 'true'); 
+                nameSpan.textContent = name;
+                nameSpan.title = name;
+                nameSpan.id = `name-for-${tx.id}`;
+                
+                // Add event listener for inline edit
+                nameSpan.addEventListener('blur', (e) => {
+                    const index = parsedImportTransactions.findIndex(t => t.id === tx.id);
+                    if (index !== -1) {
+                        // 1. Update the name in memory
+                        parsedImportTransactions[index].name = e.target.textContent.trim();
+                        // 2. Re-run rules against the new name to re-categorize
+                        const reCategorizedTx = applyRulesToCsvTransactions([parsedImportTransactions[index]])[0];
+                        parsedImportTransactions[index].category = reCategorizedTx.category;
+                        
+                        // 3. Update the category dropdown value
+                        const categorySelectEl = document.getElementById(`category-for-${tx.id}`);
+                        if (categorySelectEl) {
+                            categorySelectEl.value = reCategorizedTx.category;
+                        }
+                    }
+                });
+                
+                nameDiv.appendChild(nameSpan);
+                nameDiv.innerHTML += `<p class="text-sm text-gray-500 dark:text-gray-400">${date}</p>`; // V2.1.0 Dark Mode
+                
+                // 3. Create Category Dropdown
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = "col-span-1";
+                
+                const categorySelect = document.createElement('select');
+                categorySelect.id = `category-for-${tx.id}`;
+                // V2.0.8: Added w-full to the select list
+                categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm dark:bg-gray-600 dark:text-white dark:ring-gray-500"; // V2.1.0 Dark Mode
+                
+                if (amount > 0) {
+                    categorySelect.innerHTML = '<option value="Income">Income</option>';
+                } else {
+                    categorySelect.innerHTML = expenseCategoryOptionsHTML; 
+                }
+                categorySelect.value = tx.category; 
+                
+                // Add event listener for category change
+                categorySelect.addEventListener('change', (e) => {
+                    const index = parsedImportTransactions.findIndex(t => t.id === tx.id);
+                    if (index !== -1) {
+                        // Update the category in memory
+                        parsedImportTransactions[index].category = e.target.value;
+                    }
+                });
+                categoryDiv.appendChild(categorySelect);
+
+                // 4. Create Amount Span
+                const amountSpan = document.createElement('span');
+                amountSpan.className = `font-medium ${amountColor} text-right`;
+                amountSpan.textContent = formatCurrency(amount);
+
+                // 5. Build and Append LI
+                li.appendChild(nameDiv);
+                li.appendChild(categoryDiv);
+                li.appendChild(amountSpan);
+                reviewList.appendChild(li);
+            });
+            
+            // Add a summary
+            const summaryLi = document.createElement('li');
+            summaryLi.className = "p-2 border-t-2 border-gray-300 flex justify-between items-center font-bold dark:border-gray-500"; // V2.1.0 Dark Mode
+            summaryLi.innerHTML = `
+                <span>Total Import (${transactions.length} items)</span>
+                <span class="${totalAmount > 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(totalAmount)}</span>
+            `;
+            reviewList.appendChild(summaryLi);
+            
+            // Show the confirm button
+            confirmImportBtn.classList.remove('hidden'); 
+        }
+
+        // --- This function is now generic for ANY import ---
+        confirmImportBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user || !importTargetAccount || parsedImportTransactions.length === 0) {
+                showImportError("Error: Missing user, account, or transactions to import.");
+                return;
+            }
+            
+            confirmImportBtn.disabled = true;
+            confirmImportBtn.textContent = "Importing...";
+            
+            const account = importTargetAccount;
+            const accountId = account.id;
+            
+            try {
+                const batch = writeBatch(db);
+                let totalAmount = 0;
+                
+                // --- Read from the final parsedImportTransactions object (updated by inline editing) ---
+                parsedImportTransactions.forEach(tx => {
+                    
+                    // V2.0.6: We rely on the object's category property which was updated 
+                    // by the inline editor's change/blur events.
+                    const finalCategory = tx.category; 
+                    const amount = tx.amount;
+                    totalAmount += amount;
+                    const type = amount > 0 ? 'income' : 'expense';
+                    
+                    // V2.0.9 FIX: Convert the CSV date into a Firestore Timestamp
+                    const transactionDate = Timestamp.fromDate(parseDate(tx.date, tx.dateFormat));
+
+                    const txData = {
+                        userId: user.uid,
+                        accountId: accountId,
+                        accountName: account.name,
+                        description: tx.name, // Use the potentially edited name
+                        amount: amount,
+                        type: type,
+                        category: finalCategory, // Use the final category (either auto-applied or edited)
+                        createdAt: transactionDate // <--- FIX APPLIED HERE
+                    };
+                    const txDocRef = doc(collection(db, `users/${user.uid}/transactions`));
+                    batch.set(txDocRef, txData);
+                });
+
+                const accountRef = doc(db, `users/${user.uid}/accounts`, accountId);
+                
+                let balanceAdjustment = 0;
+                if (account.type === 'asset') {
+                    balanceAdjustment = totalAmount; 
+                } else {
+                    balanceAdjustment = -totalAmount; 
+                }
+                
+                // 1. Run the Transaction to update the balance
+                await runTransaction(db, async (transaction) => {
+                    const accountDoc = await transaction.get(accountRef);
+                    if (!accountDoc.exists()) {
+                        throw "Selected account document does not exist!";
+                    }
+                    const currentBalance = accountDoc.data().balance;
+                    const newBalance = currentBalance + balanceAdjustment;
+                    transaction.update(accountRef, { balance: newBalance });
+                });
+                
+                // 2. Run the Batch to add all transactions
+                await batch.commit();
+                
+                // --- V2.0: Save the mapping to the account ---
+                try {
+                    const mappingToSave = {
+                        dateIndex: mapDateSelect.value,
+                        descIndex: mapDescSelect.value,
+                        amountIndex: mapAmountSelect.value,
+                        dateFormat: mapDateFormat.value
+                    };
+                    
+                    const accountMapRef = doc(db, `users/${user.uid}/accounts`, accountId);
+                    await setDoc(accountMapRef, {
+                        csvMapping: mappingToSave
+                    }, { merge: true }); // Merge, so we don't overwrite balance, etc.
+                    
+                    console.log("DEBUG: V2.0 - Successfully saved CSV mapping to account.");
+                    
+                } catch (mapSaveError) {
+                    // Don't fail the whole import, just log it.
+                    console.warn("V2.0 - Could not save CSV mapping:", mapSaveError);
+                }
+                // --- End V2.0 code ---
+                
+                
+                importSuccessEl.textContent = `Successfully imported ${parsedImportTransactions.length} transactions and updated ${account.name}!`;
+                importSuccessEl.classList.remove('hidden');
+                
+                // Reset form
+                csvFileInput.value = "";
+                importAccountSelect.value = "";
+                importCategorySelect.value = "Other";
+                reviewList.innerHTML = "";
+                reviewPlaceholder.textContent = "Awaiting file to review...";
+                reviewPlaceholder.classList.remove('hidden');
+                confirmImportBtn.classList.add('hidden');
+                confirmImportBtn.disabled = false; // --- V2.0: Re-enable button
+                confirmImportBtn.textContent = "Confirm & Import Transactions"; // --- V2.0: Reset text
+                csvMapSection.classList.remove('show');
+                parsedImportTransactions = [];
+                rawCsvData = [];
+                csvHeaders = [];
+                importTargetAccount = null;
+                importTargetCategory = "Other";
+                
+                setTimeout(() => {
+                    importSuccessEl.classList.add('hidden');
+                }, 4000);
+
+            } catch (error) {
+                console.error("Error batch importing transactions:", error);
+                showImportError("Error during import: " + error.message);
+                 confirmImportBtn.disabled = false;
+                confirmImportBtn.textContent = "Confirm & Import Transactions";
+            }
+        });
+        
+        // --- 16. RULES ENGINE LOGIC ---
+        
+        // Save a new rule
+        addRuleBtn.addEventListener('click', async () => {
+            ruleError.classList.add('hidden');
+            const user = auth.currentUser;
+            if (!user) {
+                showRuleError("You must be logged in.");
+                return;
+            }
+            
+            // V2.0.3: Force keyword to be uppercase for consistent matching
+            const keyword = ruleKeywordInput.value.toUpperCase(); 
+            const category = ruleCategorySelect.value;
+            
+            if (!keyword || !category) {
+                showRuleError("Please enter a keyword and select a category.");
+                return;
+            }
+            
+            try {
+                const ruleData = {
+                    userId: user.uid,
+                    keyword: keyword,
+                    category: category,
+                    createdAt: Timestamp.now()
+                };
+                await addDoc(collection(db, `users/${user.uid}/rules`), ruleData);
+                
+                ruleKeywordInput.value = "";
+                ruleCategorySelect.value = "";
+            } catch (error) {
+                console.error("Error saving rule:", error);
+                showRuleError("Error saving rule: " + error.message);
+            }
+        });
+        
+        // V2.0.4 FIX: Delete Rule Function exposed globally
+        window.handleDeleteRule = async (ruleId) => {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            try {
+                // Open a minimal confirmation dialog to prevent accidental deletion
+                if (!confirm("Are you sure you want to delete this rule?")) {
+                    return;
+                }
+                await deleteDoc(doc(db, `users/${user.uid}/rules`, ruleId));
+            } catch (error) {
+                console.error("Error deleting rule:", error);
+                alert("Error deleting rule: " + error.message);
+            }
+        }
+        
+        // Listen for rules and display them
+        function listenForRules(userId) {
+            const collectionPath = `users/${userId}/rules`;
+            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
+            
+            rulesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                userRules = []; 
+                ruleList.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    ruleListPlaceholder.classList.remove('hidden');
+                    if (parsedImportTransactions.length > 0) {
+                        applyRulesAndRerenderReviewList();
+                    }
+                    return;
+                }
+                
+                ruleListPlaceholder.classList.add('hidden');
+                
+                snapshot.forEach((doc) => {
+                    const rule = doc.data();
+                    const ruleId = doc.id;
+                    userRules.push({ id: ruleId, ...rule }); // Add to our global array
+                    
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center bg-gray-50 p-2 rounded dark:bg-gray-700 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
+                    // V2.0.4 FIX: Call the global window.handleDeleteRule directly from the HTML
+                    li.innerHTML = `
+                        <div>
+                            <span class="font-medium text-indigo-600">${rule.keyword}</span>
+                            <span class="text-gray-500 dark:text-gray-400">→</span>
+                            <span class="font-medium text-gray-700 dark:text-gray-200">${rule.category}</span>
+                        </div>
+                        <button class="delete-rule-btn" onclick="handleDeleteRule('${ruleId}')">&times;</button>
+                    `;
+                    ruleList.appendChild(li);
+                });
+                
+                if (parsedImportTransactions.length > 0) {
+                    applyRulesAndRerenderReviewList();
+                }
+                
+            }, (error) => {
+                console.error("Error listening for rules:", error);
+                ruleListPlaceholder.textContent = "Error loading rules.";
+                ruleListPlaceholder.classList.remove('hidden');
+            });
+        }
+        
+        
+        // --- NEW V2.0.5: Clear Transactions Logic ---
+        window.handleClearTransactions = async (accountId, accountName) => {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const message = `Are you sure you want to clear **ALL** transactions for **"${accountName}"**? <br><br> <span class="font-medium text-red-600">NOTE: This does NOT reset the account balance. If you want to start over, you will need to manually update the balance after clearing the history.</span>`;
+            
+            openDeleteModal(message, async () => {
+                try {
+                    // 1. Find all transactions linked to this account
+                    const txCollectionPath = `users/${user.uid}/transactions`;
+                    const q = query(collection(db, txCollectionPath), where("accountId", "==", accountId));
+                    
+                    const txSnapshot = await getDocs(q);
+                    
+                    if (txSnapshot.empty) {
+                        alert(`No transactions found for ${accountName} to delete.`);
+                        return;
+                    }
+                    
+                    // 2. Create a batch to delete everything at once
+                    const batch = writeBatch(db);
+                    
+                    // 3. Add all matching transactions to the batch
+                    let txCount = 0;
+                    txSnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                        txCount++;
+                    });
+                    
+                    // 4. Commit the batch
+                    await batch.commit();
+                    
+                    alert(`Successfully cleared ${txCount} transactions from ${accountName}. Remember to adjust the account balance if needed!`);
+                    
+                    console.log(`Successfully cleared ${txCount} transactions from account: ${accountId}`);
+                    
+                } catch (error) {
+                    console.error("Error clearing transactions:", error);
+                    alert("Error clearing transactions: " + error.message);
+                }
+            });
+        }
+
+
+        // --- NEW V1.9.1: DELETE ACCOUNT LOGIC ---
+        
+        let confirmCallback = null; // A global to hold the function we want to run
+        
+        // This is a generic function to open the modal
+        function openDeleteModal(message, onConfirm) {
+            deleteModalMessage.innerHTML = message;
+            confirmCallback = onConfirm; // Set the specific action to run
+            deleteModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            deleteModal.classList.add('show');
+        }
+        
+        // This is a one-time setup for the modal's "cancel" button
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('show');
+            confirmCallback = null; // Clear the action
+        });
+
+        // This is a one-time setup for the modal's "confirm" button
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (typeof confirmCallback === 'function') {
+                confirmCallback(); // Run the action
+            }
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('show');
+            confirmCallback = null; // Clear the action
+        });
+        
+        // This function is called by the "X" button on each account
+        function handleDeleteAccountClick(event) {
+            const { id, name } = event.currentTarget.dataset;
+            
+            const message = `Are you sure you want to permanently delete <strong class="text-gray-900 dark:text-gray-200">"${name}"</strong>? <br><br> <span class="font-medium text-red-600">This will also delete ALL associated transactions.</span> This action cannot be undone.`; // V2.1.0 Dark Mode
+            
+            openDeleteModal(message, () => {
+                executeAccountDeletion(id);
+            });
+        }
+
+        // This is the "nuke" function that does the work
+        async function executeAccountDeletion(accountId) {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            console.log(`Starting deletion for account: ${accountId}`);
+            
+            // Show a loading/deleting state
+            assetList.innerHTML = '<li class"text-gray-500 dark:text-gray-400">Deleting account...</li>'; // V2.1.0 Dark Mode
+            liabilityList.innerHTML = '<li class"text-gray-500 dark:text-gray-400">Deleting account...</li>'; // V2.1.0 Dark Mode
+            
+            try {
+                // 1. Find all transactions linked to this account
+                const txCollectionPath = `users/${user.uid}/transactions`;
+                const q = query(collection(db, txCollectionPath), where("accountId", "==", accountId));
+                
+                const txSnapshot = await getDocs(q);
+                
+                // 2. Create a batch to delete everything at once
+                const batch = writeBatch(db);
+                
+                // 3. Add all matching transactions to the batch
+                let txCount = 0;
+                txSnapshot.forEach((doc) => {
+                    batch.delete(doc.ref);
+                    txCount++;
+                });
+                
+                // 4. Add the account itself to the batch
+                const accountRef = doc(db, `users/${user.uid}/accounts`, accountId);
+                batch.delete(accountRef);
+                
+                // 5. Commit the batch
+                await batch.commit();
+                
+                console.log(`Successfully deleted account and ${txCount} linked transactions.`);
+                
+            } catch (error) {
+                console.error("Error deleting account and transactions:", error);
+                alert("Error deleting account: " + error.message);
+                // NOTE: The listeners will auto-refresh the UI, so no need to manually re-render
+            }
+        }
+
+
+        console.log("DEBUG: Main script loaded and all listeners attached.");
+    </script>
+    
+</body>
+</html>
