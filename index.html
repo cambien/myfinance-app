@@ -461,6 +461,11 @@
             
             <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
                 <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
+                <div class="space-y-2 mb-4">
+                    <label for="extra-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Monthly Extra Payment</label>
+                    <input id="extra-payment-input" type="number" step="0.01" placeholder="0.00" value="0.00" min="0" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                </div>
+
                 <div class="flex space-x-2 mb-4">
                     <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
                         Debt Snowball
@@ -473,7 +478,7 @@
                 </div>
                 
                 <ul id="debt-plan-list" class="space-y-4">
-                    <li class="text-gray-500 dark:text-gray-400">No debts with APR/Balance info added yet.</li>
+                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
                 </ul>
             </div>
             
@@ -592,8 +597,8 @@
             getDoc,
             writeBatch,
             deleteDoc,
-            getDocs, // --- V1.9 ---
-            where    // --- V1.9 ---
+            getDocs, // --- NEW V1.9 ---
+            where    // --- NEW V1.9 ---
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
@@ -636,13 +641,10 @@
         let currentCategoryTotals = {}; 
         let totalIncome = 0; 
         
-        // V2.0.4 FIX: Put 'Other' at the start of the budget categories list.
         const budgetCategories = ['Other', 'Housing', 'Groceries', 'Utilities', 'Transportation', 'Debt Payment', 'Shopping', 'Eating Out'];
-        
-        // V2.0.4: Regenerate the HTML based on the fixed list
         const expenseCategoryOptionsHTML = budgetCategories.map(c => `<option value="${c}">${c}</option>`).join('');
         const txCategoryOptionsHTML = `<option value="">Select a category</option><option value="Income">Income</option>${expenseCategoryOptionsHTML}`;
-        
+
         // --- CSV / Import State ---
         let rawCsvData = []; // To store the raw CSV rows
         let csvHeaders = []; // To store the parsed headers
@@ -669,6 +671,9 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const sunIcon = document.getElementById('sun-icon');
         const moonIcon = document.getElementById('moon-icon');
+        
+        // V2.2.0: Debt Planner Elements
+        const extraPaymentInput = document.getElementById('extra-payment-input');
         
         // Overview Card
         const totalAssetsEl = document.getElementById('total-assets');
@@ -795,6 +800,11 @@
                 currency: 'USD'
             }).format(value);
         };
+        
+        const formatDateMonthYear = (date) => {
+            const d = date instanceof Date ? date : new Date(date);
+            return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
         
         // --- UPDATED: Simpler Date parser ---
         const parseDate = (dateString, format) => {
@@ -939,7 +949,6 @@
                 if (db) {
                     // Populate category dropdowns
                     txCategorySelect.innerHTML = txCategoryOptionsHTML;
-                    // V2.0.4 Fix: Use the expense list (which now starts with 'Other')
                     ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${expenseCategoryOptionsHTML}`;
                     
                     initializeBudgetUI(); 
@@ -1045,8 +1054,7 @@
                     const account = doc.data();
                     const accountId = doc.id;
                     
-                    // --- V2.0: We now store the full account object, including csvMapping ---
-                    userAccounts.push({ id: accountId, ...account }); 
+                    userAccounts.push({ id: accountId, ...account });
                     
                     const optionEl = document.createElement('option');
                     optionEl.value = accountId;
@@ -1065,26 +1073,19 @@
                         nameSpan.textContent = account.name;
                         
                         const balanceSpan = document.createElement('span');
-                        balanceSpan.className = "text-gray-600 dark:text-gray-300"; // V2.1.0 Dark Mode
+                        balanceSpan.className = "text-gray-600";
                         balanceSpan.textContent = balanceFormatted;
                         
-                        // V2.0.5: Clear Transaction History Button
-                        const clearTxBtn = document.createElement('button');
-                        clearTxBtn.className = "clear-tx-btn";
-                        clearTxBtn.textContent = "Clear Tx";
-                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
-
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
                         deleteBtn.innerHTML = "&times;";
                         deleteBtn.dataset.id = accountId;
                         deleteBtn.dataset.name = account.name;
-                        deleteBtn.onclick = handleDeleteAccountClick; 
+                        deleteBtn.onclick = handleDeleteAccountClick; // <-- This is the one!
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2";
-                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(balanceSpan);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1096,16 +1097,16 @@
                         
                     } else { // Liability
                         const nameSpan = document.createElement('span');
-                        nameSpan.className = "font-medium"; 
+                        nameSpan.className = "font-medium"; // --- V1.9: Removed pt-1
                         nameSpan.textContent = account.name;
 
-                        let detailsHtml = `<span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>`; // V2.1.0 Dark Mode
+                        let detailsHtml = `<span class="font-medium text-gray-700">${balanceFormatted}</span>`;
                         if (account.apr || account.minPayment) {
                             detailsHtml = `
                                 <div class="text-right">
-                                    <span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>
-                                    ${account.apr ? `<p class="text-xs text-gray-500 dark:text-gray-400">${account.apr}% APR</p>` : ''}
-                                    ${account.minPayment ? `<p class="text-xs text-gray-500 dark:text-gray-400">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
+                                    <span class="font-medium text-gray-700">${balanceFormatted}</span>
+                                    ${account.apr ? `<p class="text-xs text-gray-500">${account.apr}% APR</p>` : ''}
+                                    ${account.minPayment ? `<p class="text-xs text-gray-500">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
                                 </div>
                             `;
                         }
@@ -1113,23 +1114,16 @@
                         const detailsDiv = document.createElement('div');
                         detailsDiv.innerHTML = detailsHtml;
 
-                        // V2.0.5: Clear Transaction History Button
-                        const clearTxBtn = document.createElement('button');
-                        clearTxBtn.className = "clear-tx-btn";
-                        clearTxBtn.textContent = "Clear Tx";
-                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
-                        
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
                         deleteBtn.innerHTML = "&times;";
                         deleteBtn.dataset.id = accountId;
                         deleteBtn.dataset.name = account.name;
-                        deleteBtn.onclick = handleDeleteAccountClick; 
+                        deleteBtn.onclick = handleDeleteAccountClick; // <-- This is the one!
                         
                         const controlsDiv = document.createElement('div');
-                        controlsDiv.className = "flex items-center space-x-2"; 
-                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
+                        controlsDiv.className = "flex items-center space-x-2"; // --- V1.9: Changed to items-center
                         controlsDiv.appendChild(detailsDiv);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1141,8 +1135,8 @@
                     }
                 });
 
-                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>';
-                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
+                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500">No assets added yet.</li>';
+                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
                 
                 const netWorth = totalAssets - totalLiabilities;
                 totalAssetsEl.textContent = formatCurrency(totalAssets);
@@ -1239,20 +1233,17 @@
         
         // --- 9. Listen for Transactions ---
         function listenForTransactions(userId) {
-            console.log("DEBUG: Starting listener for transactions for user:", userId);
-            
             const collectionPath = `users/${userId}/transactions`;
             const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
 
             transactionsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-                console.log("DEBUG: Got transactions snapshot.");
                 txList.innerHTML = ""; 
                 const categoryTotals = {}; 
                 let totalIncomeThisPeriod = 0; 
                 let txCount = 0; 
                 
                 if (snapshot.empty) {
-                    txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>'; // V2.1.0 Dark Mode
+                    txList.innerHTML = '<li class="text-gray-500">No transactions logged yet.</li>';
                     renderCategoryChart(categoryTotals);
                     updateBudgetUI(categoryTotals);
                     updateFinancialFocus(); 
@@ -1266,18 +1257,16 @@
                     if (tx.type === 'income') {
                         totalIncomeThisPeriod += Math.abs(tx.amount); 
                     } else if (tx.type === 'expense') { 
-                        // V2.0.3: Ensured correct list of categories is used for totaling
                         if (budgetCategories.includes(tx.category)) {
                              categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + Math.abs(tx.amount);
                         } else {
-                             // Fallback in case of custom category outside budget list
                              categoryTotals['Other'] = (categoryTotals['Other'] || 0) + Math.abs(tx.amount);
                         }
                     }
 
                     if (txCount < 10) {
                         const txEl = document.createElement('li');
-                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
+                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50";
                         
                         const amountFormatted = formatCurrency(tx.amount);
                         const amountColor = tx.amount > 0 ? 'text-green-600' : 'text-red-600';
@@ -1286,7 +1275,7 @@
                         const infoDiv = document.createElement('div');
                         infoDiv.innerHTML = `
                             <p class="font-medium">${tx.description}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${tx.accountName} • ${tx.category} • ${date}</p>
+                            <p class="text-sm text-gray-500">${tx.accountName} • ${tx.category} • ${date}</p>
                         `;
                         
                         const amountSpan = document.createElement('span');
@@ -1311,7 +1300,7 @@
                 });
                 
                 if (txCount === 0) { 
-                     txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No recent transactions.</li>'; // V2.1.0 Dark Mode
+                     txList.innerHTML = '<li class="text-gray-500">No recent transactions.</li>';
                 }
 
                 totalIncome = totalIncomeThisPeriod; 
@@ -1412,9 +1401,7 @@
                                 position: 'bottom',
                                 labels: {
                                     padding: 15,
-                                    boxWidth: 12,
-                                    // V2.1.0: Dark mode text for chart legend
-                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563'
+                                    boxWidth: 12
                                 }
                             }
                         }
@@ -1422,18 +1409,6 @@
                 });
             }
         }
-
-        // V2.1.0: Re-render chart on theme change to update colors
-        themeToggleBtn.addEventListener('click', () => {
-             // Toggle theme first
-             const isDark = !document.documentElement.classList.contains('dark');
-             setDarkTheme(isDark);
-             // Then update chart options
-             if (categoryChart) {
-                categoryChart.options.plugins.legend.labels.color = isDark ? '#D1D5DB' : '#4B5563';
-                categoryChart.update();
-             }
-        });
 
         // --- 12. DEBT PLANNER LOGIC ---
 
@@ -1485,7 +1460,7 @@
             const sortedDebts = getSortedDebts(); 
 
             if (sortedDebts.length === 0) {
-                debtPlanList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>'; // V2.1.0 Dark Mode
+                debtPlanList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
                 return;
             }
 
@@ -1493,9 +1468,9 @@
                 const debtEl = document.createElement('li');
                 debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
                 if (index === 0) {
-                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500', 'dark:bg-gray-600'); // V2.1.0 Dark Mode
+                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
                 } else {
-                    debtEl.classList.add('bg-gray-50', 'dark:bg-gray-700'); // V2.1.0 Dark Mode
+                    debtEl.classList.add('bg-gray-50');
                 }
                 const balanceFormatted = formatCurrency(debt.balance);
                 const aprInfo = debt.apr ? `${debt.apr}% APR` : 'No APR';
@@ -1506,9 +1481,9 @@
                     <div class="flex-1 flex justify-between items-center">
                         <div>
                             <p class="font-medium">${debt.name}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">${aprInfo} • ${minPmtInfo}</p>
+                            <p class="text-sm text-gray-600">${aprInfo} • ${minPmtInfo}</p>
                         </div>
-                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800 dark:text-gray-200'}">${balanceFormatted}</span>
+                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800'}">${balanceFormatted}</span>
                     </div>
                 `;
                 debtPlanList.appendChild(debtEl);
@@ -1523,8 +1498,8 @@
                 const el = document.createElement('div');
                 el.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">${category}</label>
-                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500 dark:text-gray-400">$0 of $0</span>
+                        <label class="block text-sm font-medium leading-6 text-gray-900">${category}</label>
+                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500">$0 of $0</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <progress id="budget-progress-${category.toLowerCase().replace(' ', '-')}" value="0" max="100" class="flex-1"></progress>
@@ -1532,7 +1507,7 @@
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                 <span class="text-gray-500 sm:text-sm">$</span>
                             </div>
-                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 dark:bg-gray-600 dark:text-white dark:ring-gray-500" placeholder="0">
+                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" placeholder="0">
                         </div>
                     </div>
                 `;
@@ -1620,23 +1595,17 @@
             const sortedDebts = getSortedDebts();
             if (sortedDebts.length > 0) {
                 const targetDebt = sortedDebts[0];
-                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600 dark:text-purple-400">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600 dark:text-purple-400">${targetDebt.name}</strong>.`;
+                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600">${targetDebt.name}</strong>.`;
             } else {
                 focusDebtTarget.innerHTML = `You have no debts! 🎉 Focus on building your assets.`;
             }
             
             // 2. Leftover Cash
             let totalBudgeted = 0;
-            // V2.0.4 Fix: Use the expense categories list for total budgeted amount
-            budgetCategories.forEach(category => {
-                if(category !== 'Other') {
-                    totalBudgeted += currentBudget[category] || 0;
-                }
-            });
-
+            Object.values(currentBudget).forEach(amount => totalBudgeted += amount);
             const leftover = totalIncome - totalBudgeted;
             if (totalIncome > 0 || totalBudgeted > 0) {
-                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700 dark:text-gray-300">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
+                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
             } else {
                 focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
             }
@@ -1644,8 +1613,6 @@
             // 3. Budget Hotspot
             let hotspot = { category: null, percent: 0 };
             budgetCategories.forEach(category => {
-                if (category === 'Other') return; // Skip the 'Other' category for hotspot tracking
-                
                 const budget = currentBudget[category] || 0;
                 const spent = currentCategoryTotals[category] || 0;
                 if (budget > 0) {
@@ -1659,7 +1626,7 @@
             if (hotspot.percent > 75) {
                 focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-red-600">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
             } else if (hotspot.percent > 0) {
-                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
+                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700">${hotspot.category}</strong>, with <strong class="text-gray-700">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
                 focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
             }
@@ -1673,58 +1640,22 @@
             });
 
             if (topSpending.amount > 0) {
-                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600 dark:text-purple-400">${topSpending.category}</strong> at <strong class="text-purple-600 dark:text-purple-400">${formatCurrency(topSpending.amount)}</strong>.`;
+                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600">${topSpending.category}</strong> at <strong class="text-purple-600">${formatCurrency(topSpending.amount)}</strong>.`;
             } else {
                 focusTopSpending.innerHTML = `Log some expenses to see your top spending category.`;
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC (V1.8 / V2.0 UPGRADES) ---
+        // --- 15. CSV IMPORT LOGIC (V1.8) ---
         
-        // --- V2.0: New Helper Function for Auto-Guessing ---
-        function autoGuessMapping(headers) {
-            mapDateSelect.value = headers.findIndex(h => h.toLowerCase().includes('date'));
-            mapDescSelect.value = headers.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo'));
-            mapAmountSelect.value = headers.findIndex(h => h.toLowerCase().includes('amount'));
-        }
-        
-        // --- V2.0: Smarter CSV Parser ---
         function parseCSV(text) {
             const rows = [];
-            // Remove \r and split by \n
-            const lines = text.replace(/\r/g, '').split('\n');
-            
-            // Regex to split CSV row, handling quoted fields
-            // It looks for: ("quoted fields" | non-comma fields) followed by a comma or end-of-line
-            const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
-            
-            for (const line of lines) {
-                if (line.trim() === '') continue;
-                
-                const row = [];
-                let match;
-                
-                // Reset regex index for each new line
-                regex.lastIndex = 0; 
-                
-                while ((match = regex.exec(line)) !== null) {
-                    let value = match[1];
-                    
-                    // Clean up: remove surrounding quotes
-                    if (value.startsWith('"') && value.endsWith('"')) {
-                        value = value.substring(1, value.length - 1);
-                    }
-                    
-                    // Handle double quotes inside a quoted field (e.g., "12"" tall")
-                    value = value.replace(/""/g, '"'); 
-                    
-                    row.push(value.trim());
-                }
-                
-                if (row.length > 0) {
-                    rows.push(row);
-                }
-            }
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                if (line.trim() === '') return;
+                // Simple parser: just splits by comma.
+                rows.push(line.split(',').map(val => val.trim().replace(/"/g, '')));
+            });
             return rows;
         }
 
@@ -1751,7 +1682,7 @@
                  return;
             }
             
-            importTargetAccount = selectedAccount; // --- V2.0: importTargetAccount now has .csvMapping (if it exists)
+            importTargetAccount = selectedAccount;
             importTargetCategory = importCategorySelect.value || 'Other';
             
             const reader = new FileReader();
@@ -1759,7 +1690,7 @@
             reader.onload = (e) => {
                 const fileContent = e.target.result;
                 try {
-                    rawCsvData = parseCSV(fileContent); // --- V2.0: Using new smart parser
+                    rawCsvData = parseCSV(fileContent);
                     if (rawCsvData.length < 2) {
                         showImportError("This CSV is empty or only has a header row.");
                         return;
@@ -1776,46 +1707,13 @@
                     mapDescSelect.innerHTML = headerOptions;
                     mapAmountSelect.innerHTML = headerOptions;
                     
-                    // --- V2.0: Check for saved mapping ---
-                    if (importTargetAccount && importTargetAccount.csvMapping) {
-                        console.log("DEBUG: V2.0 - Found saved mapping for this account. Applying it.");
-                        
-                        const mapping = importTargetAccount.csvMapping;
-                        
-                        // Check if saved indices are still valid for *this* file
-                        if (mapping.dateIndex < csvHeaders.length &&
-                            mapping.descIndex < csvHeaders.length &&
-                            mapping.amountIndex < csvHeaders.length) {
-                            
-                            mapDateSelect.value = mapping.dateIndex;
-                            mapDescSelect.value = mapping.descIndex;
-                            mapAmountSelect.value = mapping.amountIndex;
-                            mapDateFormat.value = mapping.dateFormat;
+                    // Auto-guess columns
+                    mapDateSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('date'));
+                    mapDescSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo'));
+                    mapAmountSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('amount'));
 
-                            // Show the mapping section (briefly, so user sees it's populated)
-                            csvMapSection.classList.add('show');
-                            
-                            // Auto-click the "Review" button to move to the next step
-                            console.log("DEBUG: V2.0 - Auto-clicking review button.");
-                            reviewCsvBtn.click(); 
-                            
-                        } else {
-                            console.warn("V2.0 - Saved mapping is invalid for this file's headers. Resetting to auto-guess.");
-                            // Mapping is invalid, fall back to default auto-guess
-                            autoGuessMapping(csvHeaders);
-                            csvMapSection.classList.add('show');
-                        }
-                        
-                    } else {
-                        console.log("DEBUG: V2.0 - No saved mapping found. Auto-guessing.");
-                        
-                        // Auto-guess columns (using new helper)
-                        autoGuessMapping(csvHeaders);
-
-                        // Show the mapping section
-                        csvMapSection.classList.add('show');
-                    }
-                    // --- End V2.0 ---
+                    // Show the mapping section
+                    csvMapSection.classList.add('show');
                     
                 } catch (err) {
                     console.error("CSV Parse Error:", err);
@@ -1830,52 +1728,28 @@
             reader.readAsText(file);
         });
         
-        // --- V2.0.3 FIX: Utility function to clean transaction descriptions ---
-        function cleanTransactionName(name) {
-            if (!name) return "";
-            // 1. Remove common bank/account/card info (e.g., numbers, "Card", "Debit")
-            let cleaned = name.replace(/(Card|Debit|Withdrawal|Ref|Auth|FP|#|No)\s*[\d\s]*/gi, '');
-            // 2. Remove Phone numbers and Dates (looks for common phone/date formats)
-            cleaned = cleaned.replace(/\s*\b\d{3}[-\s]\d{3}[-\s]\d{4}\b\s*/g, ' '); // 801-441-5000
-            cleaned = cleaned.replace(/\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*/g, ' '); // 11/03/25
-            // 3. Remove leading/trailing non-alphanumeric noise, and multiple spaces
-            cleaned = cleaned.replace(/[^a-zA-Z0-9\s-]+/g, ' ').trim().replace(/\s+/g, ' ');
-            // 4. Return the cleaned, uppercased string
-            return cleaned.toUpperCase();
-        }
-
-        // --- V2.0.6 FIX: Rule check is now 100% reliant on the cleaned name ---
+        // --- The "Brain" for CSV categorization ---
         function applyRulesToCsvTransactions(transactions) {
-            let defaultExpenseCategory = importCategorySelect.value || 'Other';
-            
-            // Ensure the default is a valid expense category
-            if (defaultExpenseCategory === 'Income') {
-                defaultExpenseCategory = 'Other';
-            }
+            const defaultCategory = importCategorySelect.value || 'Other';
             
             return transactions.map((tx, index) => {
-                // V2.0.6 FIX: Clean the name immediately for the rule check
-                const cleanedNameForMatch = cleanTransactionName(tx.name);
-                
-                let assignedCategory; 
+                // tx is now the *standardized* object
+                const name = tx.name.toLowerCase();
+                let assignedCategory = defaultCategory; 
+
                 const type = tx.amount > 0 ? 'income' : 'expense';
-                
                 if (type === 'income') {
                     assignedCategory = 'Income';
                 } else {
-                    assignedCategory = defaultExpenseCategory; 
-                    
-                    // Apply user-defined rules to the CLEANED name
                     for (const rule of userRules) {
-                        // V2.0.6: We check if the CLEANED name INCLUDES the rule's keyword (which is also UPPERCASE)
-                        if (cleanedNameForMatch.includes(rule.keyword)) { 
-                            assignedCategory = rule.category; 
-                            break; 
+                        if (name.includes(rule.keyword.toLowerCase())) {
+                            assignedCategory = rule.category;
+                            break;
                         }
                     }
                 }
                 
-                tx.category = assignedCategory; 
+                tx.category = assignedCategory; // Mutate the object
                 return tx;
             });
         }
@@ -1909,8 +1783,7 @@
             const transactions = rawCsvData.slice(1).map((row, index) => {
                 return {
                     id: `import-tx-${index}`,
-                    // V2.0.3: Store the original description 
-                    name: row[descIndex] || "Imported Transaction", 
+                    name: row[descIndex] || "Imported Transaction",
                     amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, // Clean up amount
                     date: row[dateIndex],
                     dateFormat: dateFormat // Pass format for later
@@ -1923,7 +1796,7 @@
         });
         
         
-        // --- V2.0.7 FIX: Cleaned up array iteration and event listener binding ---
+        // --- This function is now generic for ANY review list ---
         function renderReviewList(transactions) {
             reviewList.innerHTML = ""; 
             
@@ -1940,88 +1813,36 @@
             transactions.forEach(tx => {
                 const amount = tx.amount;
                 totalAmount += amount;
-                const date = tx.date; 
+                const date = tx.date; // Just show the raw date string
                 const name = tx.name;
                 
                 const amountColor = amount > 0 ? 'text-green-600' : 'text-red-600';
                 
-                // 1. Create the container LI
-                const li = document.createElement('li');
-                li.className = "p-2 border-b border-gray-200 grid grid-cols-3 gap-2 items-center";
-                
-                // 2. Create the Name/Date div with editable Span (V2.0.6/V2.0.7)
-                const nameDiv = document.createElement('div');
-                nameDiv.className = "col-span-1";
-                
-                const nameSpan = document.createElement('span');
-                nameSpan.classList.add('font-medium', 'truncate', 'w-full', 'block', 'cursor-text'); // V2.0.8 added w-full, block, cursor-text
-                nameSpan.setAttribute('contenteditable', 'true'); 
-                nameSpan.textContent = name;
-                nameSpan.title = name;
-                nameSpan.id = `name-for-${tx.id}`;
-                
-                // Add event listener for inline edit
-                nameSpan.addEventListener('blur', (e) => {
-                    const index = parsedImportTransactions.findIndex(t => t.id === tx.id);
-                    if (index !== -1) {
-                        // 1. Update the name in memory
-                        parsedImportTransactions[index].name = e.target.textContent.trim();
-                        // 2. Re-run rules against the new name to re-categorize
-                        const reCategorizedTx = applyRulesToCsvTransactions([parsedImportTransactions[index]])[0];
-                        parsedImportTransactions[index].category = reCategorizedTx.category;
-                        
-                        // 3. Update the category dropdown value
-                        const categorySelectEl = document.getElementById(`category-for-${tx.id}`);
-                        if (categorySelectEl) {
-                            categorySelectEl.value = reCategorizedTx.category;
-                        }
-                    }
-                });
-                
-                nameDiv.appendChild(nameSpan);
-                nameDiv.innerHTML += `<p class="text-sm text-gray-500 dark:text-gray-400">${date}</p>`; // V2.1.0 Dark Mode
-                
-                // 3. Create Category Dropdown
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = "col-span-1";
-                
+                // Create the category dropdown for this specific transaction
                 const categorySelect = document.createElement('select');
                 categorySelect.id = `category-for-${tx.id}`;
-                // V2.0.8: Added w-full to the select list
-                categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm dark:bg-gray-600 dark:text-white dark:ring-gray-500"; // V2.1.0 Dark Mode
+                categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm";
+                categorySelect.innerHTML = (amount > 0 ? '<option value="Income">Income</option>' : categoryOptionsHTML);
+                categorySelect.value = tx.category; // Set to the pre-categorized value!
                 
-                if (amount > 0) {
-                    categorySelect.innerHTML = '<option value="Income">Income</option>';
-                } else {
-                    categorySelect.innerHTML = expenseCategoryOptionsHTML; 
-                }
-                categorySelect.value = tx.category; 
-                
-                // Add event listener for category change
-                categorySelect.addEventListener('change', (e) => {
-                    const index = parsedImportTransactions.findIndex(t => t.id === tx.id);
-                    if (index !== -1) {
-                        // Update the category in memory
-                        parsedImportTransactions[index].category = e.target.value;
-                    }
-                });
-                categoryDiv.appendChild(categorySelect);
-
-                // 4. Create Amount Span
-                const amountSpan = document.createElement('span');
-                amountSpan.className = `font-medium ${amountColor} text-right`;
-                amountSpan.textContent = formatCurrency(amount);
-
-                // 5. Build and Append LI
-                li.appendChild(nameDiv);
-                li.appendChild(categoryDiv);
-                li.appendChild(amountSpan);
+                const li = document.createElement('li');
+                li.className = "p-2 border-b border-gray-200 grid grid-cols-3 gap-2 items-center";
+                li.innerHTML = `
+                    <div class="col-span-1">
+                        <p class="font-medium truncate" title="${name}">${name}</p>
+                        <p class="text-sm text-gray-500">${date}</p>
+                    </div>
+                    <div class="col-span-1">
+                        ${categorySelect.outerHTML}
+                    </div>
+                    <span class="font-medium ${amountColor} text-right">${formatCurrency(amount)}</span>
+                `;
                 reviewList.appendChild(li);
             });
             
             // Add a summary
             const summaryLi = document.createElement('li');
-            summaryLi.className = "p-2 border-t-2 border-gray-300 flex justify-between items-center font-bold dark:border-gray-500"; // V2.1.0 Dark Mode
+            summaryLi.className = "p-2 border-t-2 border-gray-300 flex justify-between items-center font-bold";
             summaryLi.innerHTML = `
                 <span>Total Import (${transactions.length} items)</span>
                 <span class="${totalAmount > 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(totalAmount)}</span>
@@ -2050,28 +1871,24 @@
                 const batch = writeBatch(db);
                 let totalAmount = 0;
                 
-                // --- Read from the final parsedImportTransactions object (updated by inline editing) ---
+                // --- Read from the DOM to get the user's final edits ---
                 parsedImportTransactions.forEach(tx => {
+                    const categorySelectEl = document.getElementById(`category-for-${tx.id}`);
+                    const finalCategory = categorySelectEl.value; // Get the user's final choice!
                     
-                    // V2.0.6: We rely on the object's category property which was updated 
-                    // by the inline editor's change/blur events.
-                    const finalCategory = tx.category; 
                     const amount = tx.amount;
                     totalAmount += amount;
                     const type = amount > 0 ? 'income' : 'expense';
                     
-                    // V2.0.9 FIX: Convert the CSV date into a Firestore Timestamp
-                    const transactionDate = Timestamp.fromDate(parseDate(tx.date, tx.dateFormat));
-
                     const txData = {
                         userId: user.uid,
                         accountId: accountId,
                         accountName: account.name,
-                        description: tx.name, // Use the potentially edited name
+                        description: tx.name,
                         amount: amount,
                         type: type,
-                        category: finalCategory, // Use the final category (either auto-applied or edited)
-                        createdAt: transactionDate // <--- FIX APPLIED HERE
+                        category: finalCategory, // Use final category
+                        createdAt: Timestamp.fromDate(parseDate(tx.date, tx.dateFormat))
                     };
                     const txDocRef = doc(collection(db, `users/${user.uid}/transactions`));
                     batch.set(txDocRef, txData);
@@ -2100,28 +1917,6 @@
                 // 2. Run the Batch to add all transactions
                 await batch.commit();
                 
-                // --- V2.0: Save the mapping to the account ---
-                try {
-                    const mappingToSave = {
-                        dateIndex: mapDateSelect.value,
-                        descIndex: mapDescSelect.value,
-                        amountIndex: mapAmountSelect.value,
-                        dateFormat: mapDateFormat.value
-                    };
-                    
-                    const accountMapRef = doc(db, `users/${user.uid}/accounts`, accountId);
-                    await setDoc(accountMapRef, {
-                        csvMapping: mappingToSave
-                    }, { merge: true }); // Merge, so we don't overwrite balance, etc.
-                    
-                    console.log("DEBUG: V2.0 - Successfully saved CSV mapping to account.");
-                    
-                } catch (mapSaveError) {
-                    // Don't fail the whole import, just log it.
-                    console.warn("V2.0 - Could not save CSV mapping:", mapSaveError);
-                }
-                // --- End V2.0 code ---
-                
                 
                 importSuccessEl.textContent = `Successfully imported ${parsedImportTransactions.length} transactions and updated ${account.name}!`;
                 importSuccessEl.classList.remove('hidden');
@@ -2134,8 +1929,6 @@
                 reviewPlaceholder.textContent = "Awaiting file to review...";
                 reviewPlaceholder.classList.remove('hidden');
                 confirmImportBtn.classList.add('hidden');
-                confirmImportBtn.disabled = false; // --- V2.0: Re-enable button
-                confirmImportBtn.textContent = "Confirm & Import Transactions"; // --- V2.0: Reset text
                 csvMapSection.classList.remove('show');
                 parsedImportTransactions = [];
                 rawCsvData = [];
@@ -2155,7 +1948,7 @@
             }
         });
         
-        // --- 16. RULES ENGINE LOGIC ---
+        // --- 16. RULES ENGINE LOGIC (No changes needed) ---
         
         // Save a new rule
         addRuleBtn.addEventListener('click', async () => {
@@ -2166,8 +1959,7 @@
                 return;
             }
             
-            // V2.0.3: Force keyword to be uppercase for consistent matching
-            const keyword = ruleKeywordInput.value.toUpperCase(); 
+            const keyword = ruleKeywordInput.value;
             const category = ruleCategorySelect.value;
             
             if (!keyword || !category) {
@@ -2191,23 +1983,6 @@
                 showRuleError("Error saving rule: " + error.message);
             }
         });
-        
-        // V2.0.4 FIX: Delete Rule Function exposed globally
-        window.handleDeleteRule = async (ruleId) => {
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            try {
-                // Open a minimal confirmation dialog to prevent accidental deletion
-                if (!confirm("Are you sure you want to delete this rule?")) {
-                    return;
-                }
-                await deleteDoc(doc(db, `users/${user.uid}/rules`, ruleId));
-            } catch (error) {
-                console.error("Error deleting rule:", error);
-                alert("Error deleting rule: " + error.message);
-            }
-        }
         
         // Listen for rules and display them
         function listenForRules(userId) {
@@ -2234,17 +2009,22 @@
                     userRules.push({ id: ruleId, ...rule }); // Add to our global array
                     
                     const li = document.createElement('li');
-                    li.className = "flex justify-between items-center bg-gray-50 p-2 rounded dark:bg-gray-700 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
-                    // V2.0.4 FIX: Call the global window.handleDeleteRule directly from the HTML
+                    li.className = "flex justify-between items-center bg-gray-50 p-2 rounded";
                     li.innerHTML = `
                         <div>
                             <span class="font-medium text-indigo-600">${rule.keyword}</span>
-                            <span class="text-gray-500 dark:text-gray-400">→</span>
-                            <span class="font-medium text-gray-700 dark:text-gray-200">${rule.category}</span>
+                            <span class="text-gray-500">→</span>
+                            <span class="font-medium text-gray-700">${rule.category}</span>
                         </div>
-                        <button class="delete-rule-btn" onclick="handleDeleteRule('${ruleId}')">&times;</button>
+                        <button class="delete-rule-btn" data-id="${ruleId}">&times;</button>
                     `;
                     ruleList.appendChild(li);
+                });
+                
+                ruleList.querySelectorAll('.delete-rule-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        handleDeleteRule(btn.dataset.id);
+                    });
                 });
                 
                 if (parsedImportTransactions.length > 0) {
@@ -2258,53 +2038,20 @@
             });
         }
         
-        
-        // --- NEW V2.0.5: Clear Transactions Logic ---
-        window.handleClearTransactions = async (accountId, accountName) => {
+        // Delete a rule
+        async function handleDeleteRule(ruleId) {
             const user = auth.currentUser;
             if (!user) return;
             
-            const message = `Are you sure you want to clear **ALL** transactions for **"${accountName}"**? <br><br> <span class="font-medium text-red-600">NOTE: This does NOT reset the account balance. If you want to start over, you will need to manually update the balance after clearing the history.</span>`;
-            
-            openDeleteModal(message, async () => {
-                try {
-                    // 1. Find all transactions linked to this account
-                    const txCollectionPath = `users/${user.uid}/transactions`;
-                    const q = query(collection(db, txCollectionPath), where("accountId", "==", accountId));
-                    
-                    const txSnapshot = await getDocs(q);
-                    
-                    if (txSnapshot.empty) {
-                        alert(`No transactions found for ${accountName} to delete.`);
-                        return;
-                    }
-                    
-                    // 2. Create a batch to delete everything at once
-                    const batch = writeBatch(db);
-                    
-                    // 3. Add all matching transactions to the batch
-                    let txCount = 0;
-                    txSnapshot.forEach((doc) => {
-                        batch.delete(doc.ref);
-                        txCount++;
-                    });
-                    
-                    // 4. Commit the batch
-                    await batch.commit();
-                    
-                    alert(`Successfully cleared ${txCount} transactions from ${accountName}. Remember to adjust the account balance if needed!`);
-                    
-                    console.log(`Successfully cleared ${txCount} transactions from account: ${accountId}`);
-                    
-                } catch (error) {
-                    console.error("Error clearing transactions:", error);
-                    alert("Error clearing transactions: " + error.message);
-                }
-            });
+            try {
+                await deleteDoc(doc(db, `users/${user.uid}/rules`, ruleId));
+            } catch (error) {
+                console.error("Error deleting rule:", error);
+                showRuleError("Error deleting rule: " + error.message);
+            }
         }
-
-
-        // --- NEW V1.9.1: DELETE ACCOUNT LOGIC ---
+        
+        // --- NEW V1.9.1: DELETE ACCOUNT LOGIC (The functions I forgot!) ---
         
         let confirmCallback = null; // A global to hold the function we want to run
         
@@ -2337,7 +2084,7 @@
         function handleDeleteAccountClick(event) {
             const { id, name } = event.currentTarget.dataset;
             
-            const message = `Are you sure you want to permanently delete <strong class="text-gray-900 dark:text-gray-200">"${name}"</strong>? <br><br> <span class="font-medium text-red-600">This will also delete ALL associated transactions.</span> This action cannot be undone.`; // V2.1.0 Dark Mode
+            const message = `Are you sure you want to permanently delete <strong class="text-gray-900">"${name}"</strong>? <br><br> <span class="font-medium text-red-600">This will also delete ALL associated transactions.</span> This action cannot be undone.`;
             
             openDeleteModal(message, () => {
                 executeAccountDeletion(id);
@@ -2352,8 +2099,8 @@
             console.log(`Starting deletion for account: ${accountId}`);
             
             // Show a loading/deleting state
-            assetList.innerHTML = '<li class"text-gray-500 dark:text-gray-400">Deleting account...</li>'; // V2.1.0 Dark Mode
-            liabilityList.innerHTML = '<li class"text-gray-500 dark:text-gray-400">Deleting account...</li>'; // V2.1.0 Dark Mode
+            assetList.innerHTML = '<li class"text-gray-500">Deleting account...</li>';
+            liabilityList.innerHTML = '<li class"text-gray-500">Deleting account...</li>';
             
             try {
                 // 1. Find all transactions linked to this account
