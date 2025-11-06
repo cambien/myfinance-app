@@ -61,6 +61,10 @@
         progress[value].over-budget::-webkit-progress-value {
              background-color: #EF4444;
         }
+        /* V2.3.0: Budget Alert Styles */
+        progress[value].near-budget::-webkit-progress-value {
+             background-color: #F59E0B; /* amber-500 */
+        }
         
         /* V2.0.5: New style for Clear button */
         .clear-tx-btn {
@@ -274,7 +278,7 @@
                     <div>
                         <label for="import-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Import to Account</label>
                         <div class="mt-2">
-                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-50">
+                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                 <option value="">Select an account</option>
                                 </select>
                         </div>
@@ -949,7 +953,7 @@
                 if (db) {
                     // Populate category dropdowns
                     txCategorySelect.innerHTML = txCategoryOptionsHTML;
-                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${categoryOptionsHTML}`;
+                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${expenseCategoryOptionsHTML}`;
                     
                     initializeBudgetUI(); 
                     listenForBudget(user.uid);
@@ -1030,8 +1034,10 @@
                 liabilityFields.classList.remove('show');
 
             } catch (error) {
+                // V2.2.4 Fix: More explicit error reporting
                 console.error("Error adding account:", error);
-                showAccountError("Error adding account: " + error.message);
+                alert(`Account Add Failed: ${error.message}. Check your Firebase Security Rules.`);
+                showAccountError("Account Add Failed. Check Console for details.");
             }
         });
 
@@ -1076,6 +1082,12 @@
                         balanceSpan.className = "text-gray-600";
                         balanceSpan.textContent = balanceFormatted;
                         
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
+
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
@@ -1086,6 +1098,7 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2";
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(balanceSpan);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1114,6 +1127,12 @@
                         const detailsDiv = document.createElement('div');
                         detailsDiv.innerHTML = detailsHtml;
 
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
+
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
@@ -1124,6 +1143,7 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2"; // --- V1.9: Changed to items-center
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(detailsDiv);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1148,7 +1168,7 @@
                 else if (netWorth < 0) netWorthEl.classList.add('text-red-600');
                 else netWorthEl.classList.add('text-gray-800');
 
-                renderDebtPlanner(); // V2.2.3 FIX: Auto-run planner on account load
+                renderDebtPlanner(); 
                 updateFinancialFocus(); 
 
             }, (error) => {
@@ -1414,7 +1434,7 @@
         }
 
         // --- 12. DEBT PLANNER LOGIC (V2.2.0) ---
-        
+
         extraPaymentInput.addEventListener('input', renderDebtPlanner);
         extraPaymentInput.addEventListener('blur', renderDebtPlanner); 
         snowballBtn.addEventListener('click', () => {
@@ -1450,18 +1470,17 @@
                 let debt = debtList[i];
                 let minPaymentForSnowball = debt.minPayment || 0; 
                 
-                // V2.2.1: Safety check to skip debts that cannot be paid down
                 if (debt.remainingBalance <= 0 || minPaymentForSnowball <= 0) continue; 
                 
                 let totalPayment = minPaymentForSnowball + currentExtraPayment;
                 let monthlyApr = (debt.apr || 0) / 100 / 12;
                 
-                // Safety breaks to prevent infinite loops (common in financial modeling)
                 let loopSafetyCount = 0;
                 
-                let annualInterest = debt.balance * monthlyApr * 12;
-                if (totalPayment * 12 <= annualInterest) {
-                    return { debtList, totalMonths: 361 }; // Trigger 30-year safety break
+                // If payment is less than interest, the debt will grow. We need to catch this.
+                let interestOnInitialBalance = debt.remainingBalance * monthlyApr;
+                if (totalPayment <= interestOnInitialBalance) { 
+                     return { debtList, totalMonths: 361 }; 
                 }
 
 
@@ -1469,9 +1488,8 @@
                     loopSafetyCount++;
                     totalMonths++;
                     
-                    // Break if it exceeds 30 years or hits a runaway loop (usually due to bad data)
                     if (totalMonths > 360 || loopSafetyCount > 400) { 
-                        return { debtList, totalMonths: 361 }; // Trigger 30-year safety break
+                        return { debtList, totalMonths: 361 }; 
                     }
 
                     let interest = debt.remainingBalance * monthlyApr;
@@ -1481,12 +1499,10 @@
                     debt.totalInterest += interest;
                     debt.monthsToPayoff++; 
 
-                    // Check if we are done with this debt
                     if (debt.remainingBalance <= 0) {
-                        // Payoff month: Add this debt's *minPayment* to the extra payment for the next debt (the snowball)
                         currentExtraPayment += minPaymentForSnowball;
-                        debt.remainingBalance = 0; // Ensure it is exactly 0
-                        break; // Move to the next debt
+                        debt.remainingBalance = 0; 
+                        break; 
                     }
                 }
             }
