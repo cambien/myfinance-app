@@ -58,10 +58,10 @@
             border-radius: 9999px;
             transition: width 0.3s ease;
         }
+        /* V2.3.0: Budget Alert Styles */
         progress[value].over-budget::-webkit-progress-value {
              background-color: #EF4444;
         }
-        /* V2.3.0: Budget Alert Styles */
         progress[value].near-budget::-webkit-progress-value {
              background-color: #F59E0B; /* amber-500 */
         }
@@ -911,7 +911,7 @@
                 return;
             }
             try {
-                await signInWithEmailAndPassword(auth, provider);
+                await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 showAuthError("Wrong email or password. Please try again.");
             }
@@ -953,7 +953,7 @@
                 if (db) {
                     // Populate category dropdowns
                     txCategorySelect.innerHTML = txCategoryOptionsHTML;
-                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${categoryOptionsHTML}`;
+                    ruleCategorySelect.innerHTML = `<option value="">Select a category</option>${expenseCategoryOptionsHTML}`;
                     
                     initializeBudgetUI(); 
                     listenForBudget(user.uid);
@@ -1034,8 +1034,10 @@
                 liabilityFields.classList.remove('show');
 
             } catch (error) {
+                // V2.2.4 Fix: More explicit error reporting
                 console.error("Error adding account:", error);
-                showAccountError("Error adding account: " + error.message);
+                alert(`Account Add Failed: ${error.message}. Check your Firebase Security Rules.`);
+                showAccountError("Account Add Failed. Check Console for details.");
             }
         });
 
@@ -1077,9 +1079,15 @@
                         nameSpan.textContent = account.name;
                         
                         const balanceSpan = document.createElement('span');
-                        balanceSpan.className = "text-gray-600";
+                        balanceSpan.className = "text-gray-600 dark:text-gray-300"; // V2.1.0 Dark Mode
                         balanceSpan.textContent = balanceFormatted;
                         
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
+
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
@@ -1090,6 +1098,7 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2";
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(balanceSpan);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1104,19 +1113,25 @@
                         nameSpan.className = "font-medium"; // --- V1.9: Removed pt-1
                         nameSpan.textContent = account.name;
 
-                        let detailsHtml = `<span class="font-medium text-gray-700">${balanceFormatted}</span>`;
+                        let detailsHtml = `<span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>`; // V2.1.0 Dark Mode
                         if (account.apr || account.minPayment) {
                             detailsHtml = `
                                 <div class="text-right">
-                                    <span class="font-medium text-gray-700">${balanceFormatted}</span>
-                                    ${account.apr ? `<p class="text-xs text-gray-500">${account.apr}% APR</p>` : ''}
-                                    ${account.minPayment ? `<p class="text-xs text-gray-500">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>
+                                    ${account.apr ? `<p class="text-xs text-gray-500 dark:text-gray-400">${account.apr}% APR</p>` : ''}
+                                    ${account.minPayment ? `<p class="text-xs text-gray-500 dark:text-gray-400">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
                                 </div>
                             `;
                         }
                         
                         const detailsDiv = document.createElement('div');
                         detailsDiv.innerHTML = detailsHtml;
+
+                        // V2.0.5: Clear Transaction History Button
+                        const clearTxBtn = document.createElement('button');
+                        clearTxBtn.className = "clear-tx-btn";
+                        clearTxBtn.textContent = "Clear Tx";
+                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
 
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
@@ -1128,6 +1143,7 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2"; // --- V1.9: Changed to items-center
+                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(detailsDiv);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1139,8 +1155,8 @@
                     }
                 });
 
-                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500">No assets added yet.</li>';
-                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
+                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>';
+                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
                 
                 const netWorth = totalAssets - totalLiabilities;
                 totalAssetsEl.textContent = formatCurrency(totalAssets);
@@ -1250,7 +1266,7 @@
                 let txCount = 0; 
                 
                 if (snapshot.empty) {
-                    txList.innerHTML = '<li class="text-gray-500">No transactions logged yet.</li>';
+                    txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>'; // V2.1.0 Dark Mode
                     renderCategoryChart(categoryTotals);
                     updateBudgetUI(categoryTotals);
                     updateFinancialFocus(); 
@@ -1273,7 +1289,7 @@
 
                     if (txCount < 10) {
                         const txEl = document.createElement('li');
-                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50";
+                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
                         
                         const amountFormatted = formatCurrency(tx.amount);
                         const amountColor = tx.amount > 0 ? 'text-green-600' : 'text-red-600';
@@ -1282,7 +1298,7 @@
                         const infoDiv = document.createElement('div');
                         infoDiv.innerHTML = `
                             <p class="font-medium">${tx.description}</p>
-                            <p class="text-sm text-gray-500">${tx.accountName} • ${tx.category} • ${date}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${tx.accountName} • ${tx.category} • ${date}</p>
                         `;
                         
                         const amountSpan = document.createElement('span');
@@ -1307,7 +1323,7 @@
                 });
                 
                 if (txCount === 0) { 
-                     txList.innerHTML = '<li class="text-gray-500">No recent transactions.</li>';
+                     txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No recent transactions.</li>'; // V2.1.0 Dark Mode
                 }
 
                 totalIncome = totalIncomeThisPeriod; 
@@ -1359,7 +1375,7 @@
                         transaction.delete(txRef);
                     });
                     
-                    console.log("DEBUG: Transaction deleted successfully.");
+                    console.log("DEBUG: Transaction deleted successfully!");
                     
                 } catch (error) {
                     console.error("Error deleting transaction:", error);
@@ -1408,7 +1424,8 @@
                                 position: 'bottom',
                                 labels: {
                                     padding: 15,
-                                    boxWidth: 12
+                                    boxWidth: 12,
+                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563'
                                 }
                             }
                         }
@@ -1417,27 +1434,20 @@
             }
         }
 
-        // --- 12. DEBT PLANNER LOGIC ---
+        // V2.1.0: Re-render chart on theme change to update colors
+        themeToggleBtn.addEventListener('click', () => {
+             const isDark = !document.documentElement.classList.contains('dark');
+             setDarkTheme(isDark);
+             if (categoryChart) {
+                categoryChart.options.plugins.legend.labels.color = isDark ? '#D1D5DB' : '#4B5563';
+                categoryChart.update();
+             }
+        });
 
-        function updateDebtButtonStyles() {
-            if (debtSortStrategy === 'snowball') {
-                snowballBtn.classList.replace('bg-gray-300', 'bg-blue-600');
-                snowballBtn.classList.replace('text-gray-700', 'text-white');
-                snowballBtn.classList.remove('hover:bg-gray-400');
-                
-                avalancheBtn.classList.replace('bg-blue-600', 'bg-gray-300');
-                avalancheBtn.classList.replace('text-white', 'text-gray-700');
-                avalancheBtn.classList.add('hover:bg-gray-400');
-            } else { // avalanche
-                avalancheBtn.classList.replace('bg-gray-300', 'bg-blue-600');
-                avalancheBtn.classList.replace('text-gray-700', 'text-white');
-                avalancheBtn.classList.remove('hover:bg-gray-400');
-                
-                snowballBtn.classList.replace('bg-blue-600', 'bg-gray-300');
-                snowballBtn.classList.replace('text-white', 'text-gray-700');
-                snowballBtn.classList.add('hover:bg-gray-400');
-            }
-        }
+        // --- 12. DEBT PLANNER LOGIC (V2.2.0) ---
+        
+        extraPaymentInput.addEventListener('input', renderDebtPlanner);
+        extraPaymentInput.addEventListener('blur', renderDebtPlanner); 
         snowballBtn.addEventListener('click', () => {
             debtSortStrategy = 'snowball';
             updateDebtButtonStyles();
@@ -1451,46 +1461,144 @@
             updateFinancialFocus(); 
         });
         
-        function getSortedDebts() {
-            let debts = userAccounts.filter(acc => acc.type === 'liability' && acc.balance > 0);
+        function calculateDebtPlan(debts, extraPayment) {
+            // Clone the debts array to avoid modifying the global list
+            let debtList = debts.map(d => ({ ...d, remainingBalance: d.balance, monthsToPayoff: 0, totalInterest: 0 }));
             
             if (debtSortStrategy === 'snowball') {
-                debts.sort((a, b) => a.balance - b.balance);
+                // Sort by lowest balance first
+                debtList.sort((a, b) => a.remainingBalance - b.remainingBalance);
             } else { 
-                debts.sort((a, b) => (b.apr || 0) - (a.apr || 0));
+                // Sort by highest APR first (Avalanche)
+                debtList.sort((a, b) => (b.apr || 0) - (a.apr || 0));
             }
-            return debts;
+
+            let totalMonths = 0;
+            let currentExtraPayment = extraPayment; // The snowball starts here
+            
+            // Loop through each debt in order
+            for (let i = 0; i < debtList.length; i++) {
+                let debt = debtList[i];
+                let minPaymentForSnowball = debt.minPayment || 0; 
+                
+                if (debt.remainingBalance <= 0 || minPaymentForSnowball <= 0) continue; 
+                
+                let totalPayment = minPaymentForSnowball + currentExtraPayment;
+                let monthlyApr = (debt.apr || 0) / 100 / 12;
+                
+                let loopSafetyCount = 0;
+                
+                let interestOnInitialBalance = debt.remainingBalance * monthlyApr;
+                if (totalPayment <= interestOnInitialBalance) { 
+                     return { debtList, totalMonths: 361 }; 
+                }
+
+
+                while (debt.remainingBalance > 0) {
+                    loopSafetyCount++;
+                    totalMonths++;
+                    
+                    if (totalMonths > 360 || loopSafetyCount > 400) { 
+                        return { debtList, totalMonths: 361 }; 
+                    }
+
+                    let interest = debt.remainingBalance * monthlyApr;
+                    let principalPayment = totalPayment - interest;
+                    
+                    debt.remainingBalance -= principalPayment;
+                    debt.totalInterest += interest;
+                    debt.monthsToPayoff++; 
+
+                    if (debt.remainingBalance <= 0) {
+                        currentExtraPayment += minPaymentForSnowball;
+                        debt.remainingBalance = 0; 
+                        break; 
+                    }
+                }
+            }
+            
+            return { debtList, totalMonths };
         }
 
         function renderDebtPlanner() {
             debtPlanList.innerHTML = "";
-            const sortedDebts = getSortedDebts(); 
-
-            if (sortedDebts.length === 0) {
-                debtPlanList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
+            const extraPayment = parseFloat(extraPaymentInput.value) || 0;
+            
+            const liabilities = userAccounts.filter(acc => acc.type === 'liability'); 
+            
+            let totalMonthlyMinPayment = 0;
+            const validDebts = liabilities.filter(d => 
+                (d.balance || 0) > 0 && 
+                (d.minPayment || 0) > 0 && 
+                (d.apr || 0) >= 0
+            );
+            validDebts.forEach(d => { totalMonthlyMinPayment += (d.minPayment || 0) });
+            
+            if (liabilities.length === 0) {
+                debtPlanList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
+                return;
+            }
+            
+            if (validDebts.length === 0) {
+                debtPlanList.innerHTML = `<li class="text-red-500 font-bold dark:text-red-400">Warning: Cannot run projection. Make sure your liabilities have a balance, APR, AND Minimum Payment added.</li>`;
                 return;
             }
 
-            sortedDebts.forEach((debt, index) => {
-                const debtEl = document.createElement('li');
-                debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
-                if (index === 0) {
-                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
-                } else {
-                    debtEl.classList.add('bg-gray-50');
-                }
-                const balanceFormatted = formatCurrency(debt.balance);
-                const aprInfo = debt.apr ? `${debt.apr}% APR` : 'No APR';
-                const minPmtInfo = debt.minPayment ? `${formatCurrency(debt.minPayment)} min. pmt` : 'No min. pmt';
+            const { debtList, totalMonths } = calculateDebtPlan(validDebts, extraPayment);
 
+            if (totalMonths > 360) {
+                 debtPlanList.innerHTML = `<li class="text-red-500 font-bold dark:text-red-400">Warning: Payoff takes over 30 years with current payments. Try increasing the extra payment.</li>`;
+                 return;
+            }
+            
+            // V2.2.2 NEW: Add Summary Card
+            const summaryLi = document.createElement('li');
+            summaryLi.className = 'p-3 mb-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-purple-500 space-y-1';
+            summaryLi.innerHTML = `
+                <p class="text-sm font-medium dark:text-gray-200">Total Monthly Payment: <span class="font-bold text-purple-600">${formatCurrency(totalMonthlyMinPayment + extraPayment)}</span></p>
+                <p class="text-xs dark:text-gray-300">Min. Payments: ${formatCurrency(totalMonthlyMinPayment)} + Extra: ${formatCurrency(extraPayment)}</p>
+                <p class="text-sm font-bold dark:text-gray-200">Total Payoff Time: <span class="font-bold text-green-600">${Math.floor(totalMonths / 12)} years and ${totalMonths % 12} months</span></p>
+            `;
+            debtPlanList.appendChild(summaryLi);
+
+
+            const today = new Date();
+            let startingDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            debtList.forEach((debt, index) => {
+                const isPaidOff = debt.monthsToPayoff > 0;
+                
+                let payoffDate = 'N/A';
+                if (isPaidOff) {
+                    let futureDate = new Date(startingDate);
+                    futureDate.setMonth(futureDate.getMonth() + debt.monthsToPayoff); 
+                    payoffDate = formatDateMonthYear(futureDate);
+                }
+
+                const debtEl = document.createElement('li');
+                debtEl.className = "p-3 rounded-lg flex flex-col space-y-1";
+
+                const isTarget = index === 0;
+                const baseClass = isTarget ? 'bg-blue-50 dark:bg-gray-600 border-l-4 border-blue-500' : 'bg-gray-50 dark:bg-gray-700';
+
+                debtEl.classList.add(baseClass);
+                
                 debtEl.innerHTML = `
-                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
-                    <div class="flex-1 flex justify-between items-center">
-                        <div>
-                            <p class="font-medium">${debt.name}</p>
-                            <p class="text-sm text-gray-600">${aprInfo} • ${minPmtInfo}</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="flex items-center justify-center h-6 w-6 rounded-full ${isTarget ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'} text-xs font-bold">${index + 1}</span>
+                            <p class="font-semibold text-base ${isTarget ? 'text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}">${debt.name}</p>
                         </div>
-                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800'}">${balanceFormatted}</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">${debt.apr ? `${debt.apr}% APR` : ''}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 pl-8 space-y-1">
+                        <p>Balance: ${formatCurrency(debt.balance)}</p>
+                        <p>Min. Pmt: ${formatCurrency(debt.minPayment)}</p>
+                        ${isPaidOff ? 
+                            `<p class="font-bold text-green-600">Payoff Date: ${payoffDate}</p>
+                            <p>Total Interest Paid: ${formatCurrency(debt.totalInterest)}</p>` : 
+                            `<p class="font-bold text-red-600 dark:text-red-400">Error: Not projected to be paid off within 30 years.</p>`
+                        }
                     </div>
                 `;
                 debtPlanList.appendChild(debtEl);
@@ -1505,8 +1613,8 @@
                 const el = document.createElement('div');
                 el.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <label class="block text-sm font-medium leading-6 text-gray-900">${category}</label>
-                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500">$0 of $0</span>
+                        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">${category}</label>
+                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500 dark:text-gray-400">$0 of $0</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <progress id="budget-progress-${category.toLowerCase().replace(' ', '-')}" value="0" max="100" class="flex-1"></progress>
@@ -1514,7 +1622,7 @@
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                 <span class="text-gray-500 sm:text-sm">$</span>
                             </div>
-                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" placeholder="0">
+                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 dark:bg-gray-600 dark:text-white dark:ring-gray-500" placeholder="0">
                         </div>
                     </div>
                 `;
@@ -1584,13 +1692,17 @@
                 
                 textEl.textContent = `${formatCurrency(spentAmount)} of ${formatCurrency(budgetAmount)}`;
                 
-                progressEl.classList.remove('over-budget');
-                textEl.classList.remove('text-red-500');
+                progressEl.classList.remove('over-budget', 'near-budget'); // V2.3.0 Reset
+                textEl.classList.remove('text-red-500', 'text-yellow-500', 'font-medium'); // V2.3.0 Reset
+
+                const percentSpent = (spentAmount / budgetAmount) * 100;
+                
                 if (spentAmount > budgetAmount && budgetAmount > 0) {
                     progressEl.classList.add('over-budget');
                     textEl.classList.add('text-red-500', 'font-medium');
-                } else {
-                    textEl.classList.remove('text-red-500', 'font-medium');
+                } else if (percentSpent >= 80 && budgetAmount > 0) { // V2.3.0: 80% Warning
+                     progressEl.classList.add('near-budget');
+                     textEl.classList.add('text-yellow-500', 'font-medium');
                 }
             });
         }
@@ -1602,17 +1714,22 @@
             const sortedDebts = getSortedDebts();
             if (sortedDebts.length > 0) {
                 const targetDebt = sortedDebts[0];
-                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600">${targetDebt.name}</strong>.`;
+                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600 dark:text-purple-400">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600 dark:text-purple-400">${targetDebt.name}</strong>.`;
             } else {
                 focusDebtTarget.innerHTML = `You have no debts! 🎉 Focus on building your assets.`;
             }
             
             // 2. Leftover Cash
             let totalBudgeted = 0;
-            Object.values(currentBudget).forEach(amount => totalBudgeted += amount);
+            budgetCategories.forEach(category => {
+                if(category !== 'Other') {
+                    totalBudgeted += currentBudget[category] || 0;
+                }
+            });
+
             const leftover = totalIncome - totalBudgeted;
             if (totalIncome > 0 || totalBudgeted > 0) {
-                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
+                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700 dark:text-gray-300">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
             } else {
                 focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
             }
@@ -1620,6 +1737,8 @@
             // 3. Budget Hotspot
             let hotspot = { category: null, percent: 0 };
             budgetCategories.forEach(category => {
+                if (category === 'Other') return; 
+                
                 const budget = currentBudget[category] || 0;
                 const spent = currentCategoryTotals[category] || 0;
                 if (budget > 0) {
@@ -1633,7 +1752,7 @@
             if (hotspot.percent > 75) {
                 focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-red-600">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
             } else if (hotspot.percent > 0) {
-                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700">${hotspot.category}</strong>, with <strong class="text-gray-700">${Math.round(hotspot.percent)}%</strong> spent.`;
+                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
                 focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
             }
@@ -1647,7 +1766,7 @@
             });
 
             if (topSpending.amount > 0) {
-                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600">${topSpending.category}</strong> at <strong class="text-purple-600">${formatCurrency(topSpending.amount)}</strong>.`;
+                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600 dark:text-purple-400">${topSpending.category}</strong> at <strong class="text-purple-600 dark:text-purple-400">${formatCurrency(topSpending.amount)}</strong>.`;
             } else {
                 focusTopSpending.innerHTML = `Log some expenses to see your top spending category.`;
             }
@@ -1660,8 +1779,21 @@
             const lines = text.split('\n');
             lines.forEach(line => {
                 if (line.trim() === '') return;
-                // Simple parser: just splits by comma.
-                rows.push(line.split(',').map(val => val.trim().replace(/"/g, '')));
+                const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+                const row = [];
+                let match;
+                regex.lastIndex = 0; 
+                while ((match = regex.exec(line)) !== null) {
+                    let value = match[1];
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    value = value.replace(/""/g, '"'); 
+                    row.push(value.trim());
+                }
+                if (row.length > 0) {
+                    rows.push(row);
+                }
             });
             return rows;
         }
@@ -1679,7 +1811,7 @@
             }
             if (!accountId) {
                 showImportError("Please select an account to import these transactions into.");
-                csvFileInput.value = ""; // Reset file input
+                csvFileInput.value = ""; 
                 return;
             }
             
@@ -1705,7 +1837,6 @@
                     
                     csvHeaders = rawCsvData[0];
                     
-                    // Populate column mapping dropdowns
                     const headerOptions = csvHeaders.map((header, index) => 
                         `<option value="${index}">${header}</option>`
                     ).join('');
@@ -1714,12 +1845,10 @@
                     mapDescSelect.innerHTML = headerOptions;
                     mapAmountSelect.innerHTML = headerOptions;
                     
-                    // Auto-guess columns
                     mapDateSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('date'));
                     mapDescSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo'));
                     mapAmountSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('amount'));
 
-                    // Show the mapping section
                     csvMapSection.classList.add('show');
                     
                 } catch (err) {
@@ -1740,7 +1869,6 @@
             const defaultCategory = importCategorySelect.value || 'Other';
             
             return transactions.map((tx, index) => {
-                // tx is now the *standardized* object
                 const name = tx.name.toLowerCase();
                 let assignedCategory = defaultCategory; 
 
@@ -1756,25 +1884,20 @@
                     }
                 }
                 
-                tx.category = assignedCategory; // Mutate the object
+                tx.category = assignedCategory; 
                 return tx;
             });
         }
         
         // --- Helper to re-apply rules to the LIVE review list ---
         function applyRulesAndRerenderReviewList() {
-            if (parsedImportTransactions.length === 0) return; // Nothing to review
-            
-            // 1. Re-apply rules to the in-memory list
+            if (parsedImportTransactions.length === 0) return; 
             parsedImportTransactions = applyRulesToCsvTransactions(parsedImportTransactions);
-            
-            // 2. Re-render the *entire* review list with the new data
             renderReviewList(parsedImportTransactions);
         }
         
         
         reviewCsvBtn.addEventListener('click', () => {
-            // This button now processes the mapping
             importError.classList.add('hidden');
             const dateIndex = mapDateSelect.value;
             const descIndex = mapDescSelect.value;
@@ -1786,20 +1909,18 @@
                 return;
             }
             
-            // Process the raw CSV data (skipping header row)
             const transactions = rawCsvData.slice(1).map((row, index) => {
                 return {
                     id: `import-tx-${index}`,
                     name: row[descIndex] || "Imported Transaction",
-                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, // Clean up amount
+                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0,
                     date: row[dateIndex],
-                    dateFormat: dateFormat // Pass format for later
+                    dateFormat: dateFormat
                 };
-            }).filter(tx => tx.amount !== 0); // Filter out rows with no amount
+            }).filter(tx => tx.amount !== 0); 
             
-            // parsedImportTransactions is now our global "state"
             parsedImportTransactions = applyRulesToCsvTransactions(transactions);
-            renderReviewList(parsedImportTransactions); // Render the list
+            renderReviewList(parsedImportTransactions); 
         });
         
         
@@ -1820,7 +1941,7 @@
             transactions.forEach(tx => {
                 const amount = tx.amount;
                 totalAmount += amount;
-                const date = tx.date; // Just show the raw date string
+                const date = tx.date; 
                 const name = tx.name;
                 
                 const amountColor = amount > 0 ? 'text-green-600' : 'text-red-600';
