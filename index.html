@@ -836,7 +836,7 @@
                 }
                 return date;
             } catch (e) {
-                console.warn(`Could not parse date: ${dateString} with format ${format}`, e);
+                console.warn(`Could could not parse date: ${dateString} with format ${format}`, e);
                 return new Date(); // Fallback to now
             }
         };
@@ -1851,7 +1851,7 @@
 
                     csvMapSection.classList.add('show');
 
-                    // V2.3.1 FIX: Immediately process the data when loaded
+                    // V2.3.1 FIX: Automatically trigger the review button logic after file loads
                     reviewCsvBtn.click();
                     
                 } catch (err) {
@@ -1866,10 +1866,6 @@
             
             reader.readAsText(file);
         });
-        
-        // V2.3.1 FIX: Remove redundant reviewBtn listener that was causing problems
-        // reviewCsvBtn.addEventListener('click', () => { ... } );
-        
         
         // --- The "Brain" for CSV categorization ---
         function applyRulesToCsvTransactions(transactions) {
@@ -1905,9 +1901,9 @@
         
         
         reviewCsvBtn.addEventListener('click', () => {
-             // V2.3.1 FIX: We now explicitly run the processing step that was inside the old event handler
+             // V2.3.1 FIX: Check if data is loaded before processing
              if (rawCsvData.length < 2) {
-                 showImportError("Please select a valid CSV file first.");
+                 showImportError("File content not loaded. Please re-select the CSV file.");
                  return;
              }
              
