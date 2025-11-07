@@ -600,8 +600,8 @@
             getDoc,
             writeBatch,
             deleteDoc,
-            getDocs, // --- NEW V1.9 ---
-            where    // --- NEW V1.9 ---
+            getDocs, 
+            where    
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
@@ -1753,7 +1753,7 @@
             } else if (hotspot.percent > 0) {
                 focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
-                focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
+                focusFocusHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
             }
             
             // 4. Top Spending
@@ -1771,7 +1771,7 @@
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC (V1.8) ---
+        // --- 15. CSV IMPORT LOGIC ---
         
         function parseCSV(text) {
             const rows = [];
