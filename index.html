@@ -533,10 +533,10 @@
         </div>
         
         <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+            <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 <div>
-                    <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
                     <ul id="tx-list" class="space-y-3">
                         <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
                     </ul>
@@ -601,8 +601,8 @@
             getDoc,
             writeBatch,
             deleteDoc,
-            getDocs, // --- NEW V1.9 ---
-            where    // --- NEW V1.9 ---
+            getDocs, 
+            where    
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
@@ -1444,8 +1444,8 @@
              }
         });
 
-        // --- 12. DEBT PLANNER LOGIC (V2.2.0) ---
-        
+        // --- 12. DEBT PLANNER LOGIC ---
+
         extraPaymentInput.addEventListener('input', renderDebtPlanner);
         extraPaymentInput.addEventListener('blur', renderDebtPlanner); 
         snowballBtn.addEventListener('click', () => {
@@ -1913,9 +1913,9 @@
                 return {
                     id: `import-tx-${index}`,
                     name: row[descIndex] || "Imported Transaction",
-                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0,
+                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, 
                     date: row[dateIndex],
-                    dateFormat: dateFormat
+                    dateFormat: dateFormat 
                 };
             }).filter(tx => tx.amount !== 0); 
             
