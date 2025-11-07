@@ -262,8 +262,61 @@
             </div>
             
         </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-green-600">Assets</h2>
+                <ul id="asset-list" class="space-y-2">
+                    <li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 text-red-600">Liabilities</h2>
+                <ul id="liability-list" class="space-y-4">
+                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
+                </ul>
+            </div>
+        </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
+                <div class="space-y-2 mb-4">
+                    <label for="extra-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Monthly Extra Payment</label>
+                    <input id="extra-payment-input" type="number" step="0.01" placeholder="0.00" value="0.00" min="0" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                </div>
+
+                <div class="flex space-x-2 mb-4">
+                    <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+                        Debt Snowball
+                        <span class="block text-xs font-normal opacity-75">(Lowest Balance First)</span>
+                    </button>
+                    <button id="avalanche-btn" class="flex-1 justify-center rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-400">
+                        Debt Avalanche
+                        <span class="block text-xs font-normal opacity-75">(Highest APR First)</span>
+                    </button>
+                </div>
+                
+                <ul id="debt-plan-list" class="space-y-4">
+                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Monthly Budget</h2>
+                <div id="budget-container" class="space-y-4">
+                    <p class="text-gray-500 dark:text-gray-400">Loading budget...</p>
+                </div>
+                <button id="save-budget-btn" class="mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Save Budget</button>
+                <div id="budget-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center">Budget saved!</div>
+            </div>
+            
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
             <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
                 <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Import Transactions</h2>
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Upload a .csv file from your bank to map columns, review, and import.</p>
@@ -345,7 +398,7 @@
                 <div id="import-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center"></div>
             </div>
         </div>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
@@ -446,111 +499,57 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-green-600">Assets</h2>
-                <ul id="asset-list" class="space-y-2">
-                    <li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>
-                </ul>
-            </div>
-
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-red-600">Liabilities</h2>
-                <ul id="liability-list" class="space-y-4">
-                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
-                <div class="space-y-2 mb-4">
-                    <label for="extra-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Monthly Extra Payment</label>
-                    <input id="extra-payment-input" type="number" step="0.01" placeholder="0.00" value="0.00" min="0" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                </div>
-
-                <div class="flex space-x-2 mb-4">
-                    <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
-                        Debt Snowball
-                        <span class="block text-xs font-normal opacity-75">(Lowest Balance First)</span>
-                    </button>
-                    <button id="avalanche-btn" class="flex-1 justify-center rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-400">
-                        Debt Avalanche
-                        <span class="block text-xs font-normal opacity-75">(Highest APR First)</span>
-                    </button>
-                </div>
-                
-                <ul id="debt-plan-list" class="space-y-4">
-                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
-                </ul>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Monthly Budget</h2>
-                <div id="budget-container" class="space-y-4">
-                    <p class="text-gray-500 dark:text-gray-400">Loading budget...</p>
-                </div>
-                <button id="save-budget-btn" class="mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Save Budget</button>
-                <div id="budget-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center">Budget saved!</div>
-            </div>
-            
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-            <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Categorization Rules</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Add New Rule</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="rule-keyword-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">If text contains...</label>
-                            <div class="mt-2">
-                                <input id="rule-keyword-input" type="text" placeholder="e.g., Kroger, Chevron" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Categorization Rules</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Add New Rule</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="rule-keyword-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">If text contains...</label>
+                                <div class="mt-2">
+                                    <input id="rule-keyword-input" type="text" placeholder="e.g., Kroger, Chevron" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label for="rule-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Assign to category...</label>
-                            <div class="mt-2">
-                                <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                    <option value="">Select a category</option>
-                                    </select>
+                            <div>
+                                <label for="rule-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Assign to category...</label>
+                                <div class="mt-2">
+                                    <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="">Select a category</option>
+                                        </select>
+                                </div>
                             </div>
+                            <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
+                            <div id="rule-error" class="hidden text-sm font-medium text-red-600"></div>
                         </div>
-                        <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
-                        <div id="rule-error" class="hidden text-sm font-medium text-red-600"></div>
                     </div>
-                </div>
-                <div>
-                    <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Your Rules</h3>
-                    <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
-                        <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
-                        <ul id="rule-list" class="space-y-2">
-                            </ul>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Your Rules</h3>
+                        <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
+                            <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
+                            <ul id="rule-list" class="space-y-2">
+                                </ul>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Spending by Category</h2>
+                <div class="relative flex justify-center items-center h-64 lg:h-full min-h-[250px]">
+                    <canvas id="category-chart"></canvas>
+                    <p id="chart-placeholder" class="text-gray-500 absolute dark:text-gray-400">Log some expenses to see your spending chart.</p>
+                </div>
+            </div>
+
         </div>
-        
+
         <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
             <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <div>
-                    <ul id="tx-list" class="space-y-3">
-                        <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Spending by Category</h2>
-                    <div class="relative flex justify-center items-center h-64 lg:h-full min-h-[250px]">
-                        <canvas id="category-chart"></canvas>
-                        <p id="chart-placeholder" class="text-gray-500 absolute dark:text-gray-400">Log some expenses to see your spending chart.</p>
-                    </div>
-                </div>
-
-            </div>
+            <ul id="tx-list" class="space-y-3">
+                <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
+            </ul>
         </div>
 
     </div>
@@ -601,8 +600,8 @@
             getDoc,
             writeBatch,
             deleteDoc,
-            getDocs, 
-            where    
+            getDocs, // --- NEW V1.9 ---
+            where    // --- NEW V1.9 ---
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
