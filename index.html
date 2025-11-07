@@ -1753,7 +1753,7 @@
             } else if (hotspot.percent > 0) {
                 focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
-                focusFocusHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
+                focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
             }
             
             // 4. Top Spending
@@ -1771,7 +1771,7 @@
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC ---
+        // --- 15. CSV IMPORT LOGIC (V1.8) ---
         
         function parseCSV(text) {
             const rows = [];
