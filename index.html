@@ -1771,7 +1771,7 @@
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC (V1.8) ---
+        // --- 15. CSV IMPORT LOGIC ---
         
         function parseCSV(text) {
             const rows = [];
@@ -1825,6 +1825,7 @@
             
             const reader = new FileReader();
             
+            // V2.3.1 FIX: Move processing into the onload handler
             reader.onload = (e) => {
                 const fileContent = e.target.result;
                 try {
@@ -1849,6 +1850,9 @@
                     mapAmountSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('amount'));
 
                     csvMapSection.classList.add('show');
+
+                    // V2.3.1 FIX: Immediately process the data when loaded
+                    reviewCsvBtn.click();
                     
                 } catch (err) {
                     console.error("CSV Parse Error:", err);
@@ -1862,6 +1866,10 @@
             
             reader.readAsText(file);
         });
+        
+        // V2.3.1 FIX: Remove redundant reviewBtn listener that was causing problems
+        // reviewCsvBtn.addEventListener('click', () => { ... } );
+        
         
         // --- The "Brain" for CSV categorization ---
         function applyRulesToCsvTransactions(transactions) {
@@ -1897,31 +1905,37 @@
         
         
         reviewCsvBtn.addEventListener('click', () => {
-            importError.classList.add('hidden');
-            const dateIndex = mapDateSelect.value;
-            const descIndex = mapDescSelect.value;
-            const amountIndex = mapAmountSelect.value;
-            const dateFormat = mapDateFormat.value;
-            
-            if (!dateIndex || !descIndex || !amountIndex) {
-                showImportError("Please map all three columns: Date, Description, and Amount.");
-                return;
-            }
-            
-            const transactions = rawCsvData.slice(1).map((row, index) => {
-                return {
-                    id: `import-tx-${index}`,
-                    name: row[descIndex] || "Imported Transaction",
-                    amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, 
-                    date: row[dateIndex],
-                    dateFormat: dateFormat 
-                };
-            }).filter(tx => tx.amount !== 0); 
-            
-            parsedImportTransactions = applyRulesToCsvTransactions(transactions);
-            renderReviewList(parsedImportTransactions); 
+             // V2.3.1 FIX: We now explicitly run the processing step that was inside the old event handler
+             if (rawCsvData.length < 2) {
+                 showImportError("Please select a valid CSV file first.");
+                 return;
+             }
+             
+             importError.classList.add('hidden');
+             const dateIndex = mapDateSelect.value;
+             const descIndex = mapDescSelect.value;
+             const amountIndex = mapAmountSelect.value;
+             const dateFormat = mapDateFormat.value;
+             
+             if (!dateIndex || !descIndex || !amountIndex) {
+                 showImportError("Please map all three columns: Date, Description, and Amount.");
+                 return;
+             }
+             
+             const transactions = rawCsvData.slice(1).map((row, index) => {
+                 return {
+                     id: `import-tx-${index}`,
+                     name: row[descIndex] || "Imported Transaction",
+                     amount: parseFloat(row[amountIndex].replace(/[\$,]/g, '')) || 0, 
+                     date: row[dateIndex],
+                     dateFormat: dateFormat 
+                 };
+             }).filter(tx => tx.amount !== 0); 
+             
+             parsedImportTransactions = applyRulesToCsvTransactions(transactions);
+             renderReviewList(parsedImportTransactions);
         });
-        
+
         
         // --- This function is now generic for ANY review list ---
         function renderReviewList(transactions) {
@@ -2115,8 +2129,8 @@
         function listenForRules(userId) {
             const collectionPath = `users/${userId}/rules`;
             const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
-            
-            rulesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+
+            transactionsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                 userRules = []; 
                 ruleList.innerHTML = "";
                 
