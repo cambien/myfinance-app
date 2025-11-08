@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance Dashboard</title>
+    <title>MyFinance Dashboard (V2.5.1)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -54,7 +54,8 @@
             border-radius: 9999px;
         }
         progress[value]::-webkit-progress-value {
-            background-color: #3B82F6;
+            /* V2.4.0: Updated to green theme */
+            background-color: #16A34A; /* green-600 */
             border-radius: 9999px;
             transition: width 0.3s ease;
         }
@@ -146,10 +147,58 @@
         .modal-overlay.show .modal-content {
             transform: scale(1);
         }
+
+        /* V2.4.0: Collapsible Budget Panel */
+        #budget-edit-panel {
+            transition: all 0.3s ease-in-out;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        #budget-edit-panel.show {
+            max-height: 600px; /* Adjust as needed */
+            opacity: 1;
+        }
+
+        /* V2.5.0: Tab Navigation Styles */
+        .nav-tab {
+            /* V2.5.1: Adjust padding for mobile (icon-only) */
+            padding: 0.75rem; 
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #4B5563; /* gray-600 */
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        html.dark .nav-tab {
+            color: #D1D5DB; /* gray-300 */
+        }
+        .nav-tab:hover {
+            background-color: #F3F4F6; /* gray-100 */
+        }
+        html.dark .nav-tab:hover {
+            background-color: #374151; /* gray-700 */
+        }
+        .nav-tab.active {
+            color: #16A34A; /* green-600 */
+            border-color: #16A34A; /* green-600 */
+        }
+        html.dark .nav-tab.active {
+            color: #34D399; /* green-400 */
+            border-color: #34D399; /* green-400 */
+        }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
     </style>
 
 </head>
-<body class="bg-gray-100 h-full font-sans dark:text-gray-100"> <div id="login-page" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+<body class="bg-gray-100 h-full font-sans dark:text-gray-100">
+    <div id="login-page" class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
         <div class="sm:mx-auto sm:w-full sm:max-w-sm">
             <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">Sign in to your Dashboard</h2>
         </div>
@@ -159,7 +208,7 @@
                 <div>
                     <label for="email-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Email address</label>
                     <div class="mt-2">
-                        <input id="email-input" name="email" type="email" autocomplete="email" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        <input id="email-input" name="email" type="email" autocomplete="email" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                     </div>
                 </div>
 
@@ -168,14 +217,15 @@
                         <label for="password-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Password</label>
                     </div>
                     <div class="mt-2">
-                        <input id="password-input" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        <input id="password-input" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                     </div>
                 </div>
                 
                 <div id="auth-error" class="hidden text-sm font-medium text-red-600"></div>
 
                 <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
-                    <button id="signin-btn" class="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Sign In</button>
+                    <!-- V2.4.0: Button color change -->
+                    <button id="signin-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Sign In</button>
                     <button id="signup-btn" class="flex w-full justify-center rounded-md bg-gray-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">Sign Up</button>
                 </div>
                 
@@ -200,10 +250,13 @@
         </div>
     </div>
 
-    <div id="dashboard-page" class="hidden container mx-auto p-4 space-y-6">
+    <!-- V2.5.0: Main dashboard container -->
+    <div id="dashboard-page" class="hidden container mx-auto p-4">
         
-        <div class="flex flex-wrap justify-between items-center gap-4">
-            <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-400">MyFinance Dashboard</h1>
+        <!-- V2.5.1: Responsive Header -->
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+            <!-- VTop-level -->
+            <h1 class="text-3xl font-bold text-green-700 dark:text-green-400">MyFinance Dashboard</h1>
             <div class="flex items-center space-x-4">
                 <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                     <svg id="sun-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,344 +272,389 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Financial Overview</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div>
-                        <p class="text-sm font-medium text-green-600">Total Assets</p>
-                        <p id="total-assets" class="text-2xl font-bold text-green-600">$0.00</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-red-600">Total Liabilities</p>
-                        <p id="total-liabilities" class="text-2xl font-bold text-red-600">$0.00</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-blue-700">Net Worth</p>
-                        <p id="net-worth" class="text-2xl font-bold text-blue-700">$0.00</p>
-                    </div>
-                </div>
-            </div>
+        <!-- V2.5.1: Responsive Tab Navigation (scrolls on mobile) -->
+        <nav class="flex border-b border-gray-300 dark:border-gray-600 overflow-x-auto whitespace-nowrap">
+            <button id="nav-dashboard" class="nav-tab active" data-page="page-dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-5 w-5 md:mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                </svg>
+                <span class="hidden md:inline">Dashboard</span>
+            </button>
+            <button id="nav-accounts" class="nav-tab" data-page="page-accounts">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-5 w-5 md:mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 4a3 3 0 00-3 3v4a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3H8z" />
+                    <path d="M3 7a3 3 0 013-3h8a3 3 0 013 3v6a3 3 0 01-3 3H6a3 3 0 01-3-3V7zM6 6h8a1 1 0 011 1v6a1 1 0 01-1 1H6a1 1 0 01-1-1V7a1 1 0 011-1z" />
+                </svg>
+                <span class="hidden md:inline">Accounts</span>
+            </button>
+            <button id="nav-transactions" class="nav-tab" data-page="page-transactions">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-5 w-5 md:mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h12v4a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 6a2 2 0 00-2 2v4a2 2 0 002 2h12a2 2 0 002-2v-4a2 2 0 00-2-2H4zm10 3a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                </svg>
+                <span class="hidden md:inline">Transactions</span>
+            </button>
+            <button id="nav-settings" class="nav-tab" data-page="page-settings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-5 w-5 md:mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.35-.41-2.63.77-2.22 2.218a1.532 1.532 0 01-.947 2.287c-1.56.38-1.56 2.6 0 2.98a1.532 1.532 0 01.947 2.287c.41 1.35-.87 2.63-2.22 2.218a1.532 1.532 0 01-2.286.948c-.38 1.56 2.6 1.56 2.98 0a1.532 1.532 0 012.286-.948c1.35.41 2.63-.77 2.22-2.218a1.532 1.532 0 01.947-2.287c1.56-.38 1.56-2.6 0-2.98a1.532 1.532 0 01-.947-2.287c-.41-1.35.87-2.63 2.22-2.218a1.532 1.532 0 012.286-.948zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+                <span class="hidden md:inline">Settings</span>
+            </button>
+        </nav>
 
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-purple-700 dark:text-purple-400">Your Financial Focus</h2>
-                <ul class="space-y-3">
-                    <li class="flex items-start">
-                        <span class="text-lg mr-2">🎯</span>
-                        <p id="focus-debt-target" class="text-gray-700 dark:text-gray-300">Your debt plan is loading...</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-lg mr-2">💸</span>
-                        <p id="focus-leftover-cash" class="text-gray-700 dark:text-gray-300">Your monthly forecast is calculating...</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-lg mr-2">🔥</span>
-                        <p id="focus-budget-hotspot" class="text-gray-700 dark:text-gray-300">Analyzing your budget...</p>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-lg mr-2">🛒</span>
-                        <p id="focus-top-spending" class="text-gray-700 dark:text-gray-300">Analyzing your spending...</p>
-                    </li>
-                </ul>
-            </div>
-            
-        </div>
+        <!-- V2.5.0: Tab Content Wrapper -->
+        <div class="mt-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-green-600">Assets</h2>
-                <ul id="asset-list" class="space-y-2">
-                    <li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>
-                </ul>
-            </div>
-
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 text-red-600">Liabilities</h2>
-                <ul id="liability-list" class="space-y-4">
-                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
-                <div class="space-y-2 mb-4">
-                    <label for="extra-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Monthly Extra Payment</label>
-                    <input id="extra-payment-input" type="number" step="0.01" placeholder="0.00" value="0.00" min="0" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                </div>
-
-                <div class="flex space-x-2 mb-4">
-                    <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
-                        Debt Snowball
-                        <span class="block text-xs font-normal opacity-75">(Lowest Balance First)</span>
-                    </button>
-                    <button id="avalanche-btn" class="flex-1 justify-center rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-400">
-                        Debt Avalanche
-                        <span class="block text-xs font-normal opacity-75">(Highest APR First)</span>
-                    </button>
-                </div>
-                
-                <ul id="debt-plan-list" class="space-y-4">
-                    <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
-                </ul>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Monthly Budget</h2>
-                <div id="budget-container" class="space-y-4">
-                    <p class="text-gray-500 dark:text-gray-400">Loading budget...</p>
-                </div>
-                <button id="save-budget-btn" class="mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Save Budget</button>
-                <div id="budget-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center">Budget saved!</div>
-            </div>
-            
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Import Transactions</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Upload a .csv file from your bank to map columns, review, and import.</p>
-                <div class="space-y-4">
-                    <div>
-                        <label for="csv-file-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">CSV File</label>
-                        <div class="mt-2">
-                             <input id="csv-file-input" type="file" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-200 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium dark:bg-gray-600 dark:text-white dark:border-gray-500 file:dark:bg-gray-700 file:dark:text-gray-200">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="import-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Import to Account</label>
-                        <div class="mt-2">
-                            <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="">Select an account</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="import-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Default Category (for uncategorized)</label>
-                        <div class="mt-2">
-                            <select id="import-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="Other">Other (default)</option>
-                                <option value="Income">Income</option>
-                                <option value="Housing">Housing</option>
-                                <option value="Groceries">Groceries</option>
-                                <option value="Utilities">Utilities</option>
-                                <option value="Transportation">Transportation</option>
-                                <option value="Debt Payment">Debt Payment</option>
-                                <option value="Shopping">Shopping</option>
-                                <option value="Eating Out">Eating Out</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div id="csv-map-section" class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-600">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200">Step 2: Map Your Columns</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Match your CSV columns to the required fields.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- ========= PAGE: DASHBOARD (DEFAULT) ========= -->
+            <div id="page-dashboard" class="page-content active space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Financial Overview</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                             <div>
-                                <label for="map-date-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Column</label>
-                                <select id="map-date-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                                <p class="text-sm font-medium text-green-600">Total Assets</p>
+                                <p id="total-assets" class="text-2xl font-bold text-green-600">$0.00</p>
                             </div>
-                             <div>
-                                <label for="map-desc-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description Column</label>
-                                <select id="map-desc-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                            <div>
+                                <p class="text-sm font-medium text-red-600">Total Liabilities</p>
+                                <p id="total-liabilities" class="text-2xl font-bold text-red-600">$0.00</p>
                             </div>
-                             <div>
-                                <label for="map-amount-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount Column</label>
-                                <select id="map-amount-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Net Worth</p>
+                                <p id="net-worth" class="text-2xl font-bold text-gray-700">$0.00</p>
                             </div>
                         </div>
-                        <div>
-                           <label for="map-date-format" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Format</label>
-                           <select id="map-date-format" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                               <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                               <option value="MM-DD-YYYY">MM-DD-YYYY</option>
-                           </select>
-                       </div>
                     </div>
-                    
-                    <!-- V2.3.3: Add the missing "Review Transactions" button -->
-                    <button id="review-csv-btn" class="mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
-                        Review Transactions
-                    </button>
-                    
+        
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 text-purple-700 dark:text-purple-400">Your Financial Focus</h2>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-lg mr-2">🎯</span>
+                                <p id="focus-debt-target" class="text-gray-700 dark:text-gray-300">Your debt plan is loading...</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-lg mr-2">💸</span>
+                                <p id="focus-leftover-cash" class="text-gray-700 dark:text-gray-300">Your monthly forecast is calculating...</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-lg mr-2">🔥</span>
+                                <p id="focus-budget-hotspot" class="text-gray-700 dark:text-gray-300">Analyzing your budget...</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-lg mr-2">🛒</span>
+                                <p id="focus-top-spending" class="text-gray-700 dark:text-gray-300">Analyzing your spending...</p>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Review & Confirm Import</h2>
-                <div id="review-container" class="space-y-3 max-h-64 overflow-y-auto">
-                    <p id="review-placeholder" class="text-gray-500 dark:text-gray-400">Awaiting file to review...</p>
-                    <ul id="review-list" class="space-y-2">
-                    </ul>
-                </div>
-                <button id="confirm-import-btn" class="hidden mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Confirm & Import Transactions</button>
-                <div id="import-error" class="hidden text-sm font-medium text-red-600 mt-2"></div>
-                <div id="import-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center"></div>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Add New Account</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label for="account-name-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Name</label>
-                        <div class="mt-2">
-                            <input id="account-name-input" type="text" placeholder="e.g., Chase Checking" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                        </div>
+                <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                    <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Spending by Category</h2>
+                    <div class="relative flex justify-center items-center h-64 lg:h-96 min-h-[300px]">
+                        <canvas id="category-chart"></canvas>
+                        <p id="chart-placeholder" class="text-gray-500 absolute dark:text-gray-400">Log some expenses to see your spending chart.</p>
                     </div>
-                    <div>
-                        <label for="account-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Type</label>
-                        <div class="mt-2">
-                            <select id="account-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="asset">Asset (e.g., Checking, Savings)</option>
-                                <option value="liability">Liability (e.g., Credit Card, Loan)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="account-balance-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Current Balance</label>
-                        <div class="mt-2">
-                            <input id="account-balance-input" type="number" step="0.01" placeholder="1000.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                        </div>
-                    </div>
-
-                    <div id="liability-fields" class="space-y-4">
-                        <div>
-                            <label for="account-apr-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Interest Rate (APR) % <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
-                            <div class="mt-2">
-                                <input id="account-apr-input" type="number" step="0.01" placeholder="21.99" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="account-min-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Minimum Monthly Payment $ <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
-                            <div class="mt-2">
-                                <input id="account-min-payment-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="add-account-btn" class="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Add Account</button>
-                    <div id="account-error" class="hidden text-sm font-medium text-red-600"></div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Log New Transaction</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label for="tx-desc-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description</label>
-                        <div class="mt-2">
-                            <input id="tx-desc-input" type="text" placeholder="e.g., Groceries, Paycheck" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                        </div>
+            <!-- ========= PAGE: ACCOUNTS ========= -->
+            <div id="page-accounts" class="page-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 text-green-600">Assets</h2>
+                        <ul id="asset-list" class="space-y-2">
+                            <li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>
+                        </ul>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="tx-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Type</label>
-                            <div class="mt-2">
-                                <select id="tx-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                    <option value="expense">Expense</option>
-                                    <option value="income">Income</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="tx-amount-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount</label>
-                            <div class="mt-2">
-                                <input id="tx-amount-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                            </div>
-                        </div>
+        
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 text-red-600">Liabilities</h2>
+                        <ul id="liability-list" class="space-y-4">
+                            <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
+                        </ul>
                     </div>
-
-                    <div>
-                        <label for="tx-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Category</label>
-                        <div class="mt-2">
-                            <select id="tx-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="">Select a category</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="tx-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account</label>
-                        <div class="mt-2">
-                            <select id="tx-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="">Select an account</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <button id="add-tx-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Transaction</button>
-                    <div id="tx-error" class="hidden text-sm font-medium text-red-600"></div>
                 </div>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Categorization Rules</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Add New Rule</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Debt Payoff Plan</h2>
+                        <div class="space-y-2 mb-4">
+                            <label for="extra-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Monthly Extra Payment</label>
+                            <input id="extra-payment-input" type="number" step="0.01" placeholder="0.00" value="0.00" min="0" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                        </div>
+        
+                        <div class="flex space-x-2 mb-4">
+                            <button id="snowball-btn" class="flex-1 justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+                                Debt Snowball
+                                <span class="block text-xs font-normal opacity-75">(Lowest Balance First)</span>
+                            </button>
+                            <button id="avalanche-btn" class="flex-1 justify-center rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-400">
+                                Debt Avalanche
+                                <span class="block text-xs font-normal opacity-75">(Highest APR First)</span>
+                            </button>
+                        </div>
+                        
+                        <ul id="debt-plan-list" class="space-y-4">
+                            <li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Add New Account</h2>
                         <div class="space-y-4">
                             <div>
-                                <label for="rule-keyword-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">If text contains...</label>
+                                <label for="account-name-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Name</label>
                                 <div class="mt-2">
-                                    <input id="rule-keyword-input" type="text" placeholder="e.g., Kroger, Chevron" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    <input id="account-name-input" type="text" placeholder="e.g., Chase Checking" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                 </div>
                             </div>
                             <div>
-                                <label for="rule-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Assign to category...</label>
+                                <label for="account-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account Type</label>
                                 <div class="mt-2">
-                                    <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                        <option value="">Select a category</option>
+                                    <select id="account-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="asset">Asset (e.g., Checking, Savings)</option>
+                                        <option value="liability">Liability (e.g., Credit Card, Loan)</option>
                                     </select>
                                 </div>
                             </div>
-                            <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
-                            <div id="rule-error" class="hidden text-sm font-medium text-red-600"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Your Rules</h3>
-                        <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
-                            <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
-                            <ul id="rule-list" class="space-y-2">
-                            </ul>
+                            <div>
+                                <label for="account-balance-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Current Balance</label>
+                                <div class="mt-2">
+                                    <input id="account-balance-input" type="number" step="0.01" placeholder="1000.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                </div>
+                            </div>
+        
+                            <div id="liability-fields" class="space-y-4">
+                                <div>
+                                    <label for="account-apr-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Interest Rate (APR) % <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
+                                    <div class="mt-2">
+                                        <input id="account-apr-input" type="number" step="0.01" placeholder="21.99" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="account-min-payment-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Minimum Monthly Payment $ <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span></label>
+                                    <div class="mt-2">
+                                        <input id="account-min-payment-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <button id="add-account-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Add Account</button>
+                            <div id="account-error" class="hidden text-sm font-medium text-red-600"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Spending by Category</h2>
-                <div class="relative flex justify-center items-center h-64 lg:h-full min-h-[250px]">
-                    <canvas id="category-chart"></canvas>
-                    <p id="chart-placeholder" class="text-gray-500 absolute dark:text-gray-400">Log some expenses to see your spending chart.</p>
+
+            <!-- ========= PAGE: TRANSACTIONS ========= -->
+            <div id="page-transactions" class="page-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Import Transactions</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Upload a .csv file from your bank to map columns, review, and import.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="csv-file-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">CSV File</label>
+                                <div class="mt-2">
+                                     <input id="csv-file-input" type="file" accept=".csv" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-200 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium dark:bg-gray-600 dark:text-white dark:border-gray-500 file:dark:bg-gray-700 file:dark:text-gray-200">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="import-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Import to Account</label>
+                                <div class="mt-2">
+                                    <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="">Select an account</option>
+                                        </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="import-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Default Category (for uncategorized)</label>
+                                <div class="mt-2">
+                                    <select id="import-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="Other">Other (default)</option>
+                                        <option value="Income">Income</option>
+                                        <option value="Housing">Housing</option>
+                                        <option value="Groceries">Groceries</option>
+                                        <option value="Utilities">Utilities</option>
+                                        <option value="Transportation">Transportation</option>
+                                        <option value="Debt Payment">Debt Payment</option>
+                                        <option value="Shopping">Shopping</option>
+                                        <option value="Eating Out">Eating Out</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="csv-map-section" class="hidden space-y-4 border-t border-gray-200 pt-6 dark:border-gray-600">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200">Step 2: Map Your Columns</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Match your CSV columns to the required fields.</p>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label for="map-date-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Column</label>
+                                        <select id="map-date-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                                    </div>
+                                     <div>
+                                        <label for="map-desc-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description Column</label>
+                                        <select id="map-desc-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                                    </div>
+                                     <div>
+                                        <label for="map-amount-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount Column</label>
+                                        <select id="map-amount-select" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500"></select>
+                                    </div>
+                                </div>
+                                <div>
+                                     <label for="map-date-format" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Format</label>
+                                     <select id="map-date-format" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                         <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                         <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                         <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                         <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+                                     </select>
+                                </div>
+                                <button id="review-csv-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Review Transactions</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Review & Confirm Import</h2>
+                        <div id="review-container" class="space-y-3 max-h-64 overflow-y-auto">
+                            <p id="review-placeholder" class="text-gray-500 dark:text-gray-400">Awaiting file to review...</p>
+                            <ul id="review-list" class="space-y-2">
+                                </ul>
+                        </div>
+                        <button id="confirm-import-btn" class="hidden mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Confirm & Import Transactions</button>
+                        <div id="import-error" class="hidden text-sm font-medium text-red-600 mt-2"></div>
+                        <div id="import-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Log New Transaction</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="tx-desc-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Description</label>
+                                <div class="mt-2">
+                                    <input id="tx-desc-input" type="text" placeholder="e.g., Groceries, Paycheck" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="tx-type-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Type</label>
+                                    <div class="mt-2">
+                                        <select id="tx-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                            <option value="expense">Expense</option>
+                                            <option value="income">Income</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="tx-amount-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Amount</label>
+                                    <div class="mt-2">
+                                        <input id="tx-amount-input" type="number" step="0.01" placeholder="50.00" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <div>
+                                <label for="tx-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Category</label>
+                                <div class="mt-2">
+                                    <select id="tx-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="">Select a category</option>
+                                        </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="tx-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account</label>
+                                <div class="mt-2">
+                                    <select id="tx-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        <option value="">Select an account</option>
+                                        </select>
+                                </div>
+                            </div>
+                            
+                            <button id="add-tx-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">Log Transaction</button>
+                            <div id="tx-error" class="hidden text-sm font-medium text-red-600"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
+                        <ul id="tx-list" class="space-y-3">
+                            <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <!-- ========= PAGE: SETTINGS ========= -->
+            <div id="page-settings" class="page-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold dark:text-gray-200">Monthly Budget</h2>
+                            <button id="toggle-budget-edit-btn" class="text-sm font-medium text-green-600 hover:text-green-500">Edit Budget</button>
+                        </div>
+                        
+                        <!-- This is the "display" view -->
+                        <div id="budget-display-panel" class="space-y-4">
+                            <p class="text-gray-500 dark:text-gray-400">Loading budget...</p>
+                        </div>
+                        
+                        <!-- This is the "edit" view (collapsible) -->
+                        <div id="budget-edit-panel" class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <div id="budget-edit-inputs">
+                                <!-- Inputs will be generated by JS -->
+                            </div>
+                            <button id="save-budget-btn" class="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Save Budget</button>
+                            <div id="budget-success" class="hidden text-sm font-medium text-green-600 mt-2 text-center">Budget saved!</div>
+                        </div>
+                    </div>
+        
+                    <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
+                        <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Categorization Rules</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Add New Rule</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="rule-keyword-input" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">If text contains...</label>
+                                        <div class="mt-2">
+                                            <input id="rule-keyword-input" type="text" placeholder="e.g., Kroger, Chevron" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="rule-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Assign to category...</label>
+                                        <div class="mt-2">
+                                            <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                                                <option value="">Select a category</option>
+                                                </select>
+                                        </div>
+                                    </div>
+                                    <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
+                                    <div id="rule-error" class="hidden text-sm font-medium text-red-600"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-2 dark:text-gray-200">Your Rules</h3>
+                                <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
+                                    <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
+                                    <ul id="rule-list" class="space-y-2">
+                                        </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="bg-white rounded-lg shadow p-6 dark:shadow-none">
-            <h2 class="text-xl font-semibold mb-4 dark:text-gray-200">Recent Transactions</h2>
-            <ul id="tx-list" class="space-y-3">
-                <li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>
-            </ul>
-        </div>
+        </div> <!-- End of Tab Content Wrapper -->
 
-    </div>
+    </div> <!-- End of Dashboard Page -->
     
     <div id="delete-account-modal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -605,7 +703,7 @@
             writeBatch,
             deleteDoc,
             getDocs, 
-            where   
+            where  
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
@@ -638,6 +736,7 @@
         let transactionsListenerUnsubscribe = null;
         let budgetListenerUnsubscribe = null; 
         let rulesListenerUnsubscribe = null; 
+        let rulesLoaded = false; // V2.3.4: Add rules loading flag
         
         let userAccounts = []; 
         let userRules = []; 
@@ -700,7 +799,7 @@
         const mapDescSelect = document.getElementById('map-desc-select');
         const mapAmountSelect = document.getElementById('map-amount-select');
         const mapDateFormat = document.getElementById('map-date-format');
-        const reviewCsvBtn = document.getElementById('review-csv-btn'); // V2.3.3: This button now exists
+        const reviewCsvBtn = document.getElementById('review-csv-btn');
         
         const reviewContainer = document.getElementById('review-container'); 
         const reviewPlaceholder = document.getElementById('review-placeholder'); 
@@ -747,10 +846,15 @@
         const categoryChartCanvas = document.getElementById('category-chart');
         const chartPlaceholder = document.getElementById('chart-placeholder');
         
-        // Budget Elements
-        const budgetContainer = document.getElementById('budget-container');
-        const saveBudgetBtn = document.getElementById('save-budget-btn');
-        const budgetSuccessEl = document.getElementById('budget-success');
+        // V2.4.0: Budget Elements
+        // NOTE: We have two budget sections now, one on Settings, one (legacy) on Accounts.
+        // We'll select them all. This is a bit of a hack, but works.
+        const budgetDisplayPanels = document.querySelectorAll('#budget-display-panel');
+        const budgetEditPanels = document.querySelectorAll('#budget-edit-panel');
+        const budgetEditInputs = document.querySelectorAll('#budget-edit-inputs');
+        const toggleBudgetEditBtns = document.querySelectorAll('#toggle-budget-edit-btn');
+        const saveBudgetBtns = document.querySelectorAll('#save-budget-btn');
+        const budgetSuccessEls = document.querySelectorAll('#budget-success');
         
         // Rules Engine Elements
         const ruleKeywordInput = document.getElementById('rule-keyword-input');
@@ -765,6 +869,10 @@
         const deleteModalMessage = document.getElementById('delete-modal-message');
         const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
         const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+        // --- V2.5.0: Tab Navigation Elements ---
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const pageContents = document.querySelectorAll('.page-content');
         
         console.log("DEBUG: All HTML elements grabbed.");
 
@@ -845,15 +953,44 @@
             }
         };
         
-        function showPage(pageId) {
+        // V2.5.0: Updated Page Navigation
+        function showAppPage(pageId) {
+            // Handle top-level login/dashboard
             if (pageId === 'login') {
                 loginPage.classList.remove('hidden');
                 dashboardPage.classList.add('hidden');
             } else if (pageId === 'dashboard') {
                 loginPage.classList.add('hidden');
                 dashboardPage.classList.remove('hidden');
+                // Default to the main dashboard tab
+                showTab('page-dashboard');
             }
         }
+
+        function showTab(pageId) {
+            // Hide all page content
+            pageContents.forEach(page => page.classList.remove('active'));
+            // Deactivate all tabs
+            navTabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show the target page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            // Activate the target tab
+            const targetTab = document.querySelector(`.nav-tab[data-page="${pageId}"]`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+        }
+
+        // V2.5.0: Add tab click listeners
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                showTab(tab.dataset.page);
+            });
+        });
 
         function showAuthError(message) {
             authError.textContent = message;
@@ -950,7 +1087,7 @@
             if (user) {
                 // User is logged in
                 userEmailDisplay.textContent = user.email;
-                showPage('dashboard');
+                showAppPage('dashboard'); // V2.5.0: Use new function
                 
                 // Start listening for this user's data
                 if (db) {
@@ -968,11 +1105,12 @@
                 }
             } else {
                 // User is logged out
-                showPage('login');
+                showAppPage('login'); // V2.5.0: Use new function
                 if (accountsListenerUnsubscribe) accountsListenerUnsubscribe();
                 if (transactionsListenerUnsubscribe) transactionsListenerUnsubscribe();
                 if (budgetListenerUnsubscribe) budgetListenerUnsubscribe();
                 if (rulesListenerUnsubscribe) rulesListenerUnsubscribe();
+                rulesLoaded = false; // V2.3.4: Reset flag on logout
             }
         });
         
@@ -1150,10 +1288,10 @@
                 totalLiabilitiesEl.textContent = formatCurrency(totalLiabilities);
                 netWorthEl.textContent = formatCurrency(netWorth);
                 
-                netWorthEl.classList.remove('text-blue-700', 'text-red-600', 'text-gray-800', 'text-green-600');
+                netWorthEl.classList.remove('text-green-600', 'text-red-600', 'text-gray-700');
                 if (netWorth > 0) netWorthEl.classList.add('text-green-600');
                 else if (netWorth < 0) netWorthEl.classList.add('text-red-600');
-                else netWorthEl.classList.add('text-gray-800');
+                else netWorthEl.classList.add('text-gray-700');
 
                 renderDebtPlanner();
                 updateFinancialFocus(); 
@@ -1310,7 +1448,7 @@
                 });
                 
                 if (txCount === 0) { 
-                     txList.innerHTML = '<li class="text-gray-500">No recent transactions.</li>';
+                    txList.innerHTML = '<li class="text-gray-500">No recent transactions.</li>';
                 }
 
                 totalIncome = totalIncomeThisPeriod; 
@@ -1396,7 +1534,8 @@
                             label: 'Spending',
                             data: data,
                             backgroundColor: [ 
-                                '#3B82F6', '#10B981', '#EF4444', '#F59E0B', 
+                                '#16A34A', // V2.4.0: Green
+                                '#10B981', '#EF4444', '#F59E0B', 
                                 '#6366F1', '#EC4899', '#8B5CF6', '#F97316', 
                                 '#06B6D4', '#D946EF'
                             ],
@@ -1424,19 +1563,20 @@
 
         function updateDebtButtonStyles() {
             if (debtSortStrategy === 'snowball') {
-                snowballBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                // V2.4.0: Button color change
+                snowballBtn.classList.replace('bg-gray-300', 'bg-green-600');
                 snowballBtn.classList.replace('text-gray-700', 'text-white');
                 snowballBtn.classList.remove('hover:bg-gray-400');
                 
-                avalancheBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                avalancheBtn.classList.replace('bg-green-600', 'bg-gray-300');
                 avalancheBtn.classList.replace('text-white', 'text-gray-700');
                 avalancheBtn.classList.add('hover:bg-gray-400');
             } else { // avalanche
-                avalancheBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                avalancheBtn.classList.replace('bg-gray-300', 'bg-green-600');
                 avalancheBtn.classList.replace('text-gray-700', 'text-white');
                 avalancheBtn.classList.remove('hover:bg-gray-400');
                 
-                snowballBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                snowballBtn.classList.replace('bg-green-600', 'bg-gray-300');
                 snowballBtn.classList.replace('text-white', 'text-gray-700');
                 snowballBtn.classList.add('hover:bg-gray-400');
             }
@@ -1478,7 +1618,8 @@
                 const debtEl = document.createElement('li');
                 debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
                 if (index === 0) {
-                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+                    // V2.4.0: Theme color update
+                    debtEl.classList.add('bg-green-50', 'border-l-4', 'border-green-500');
                 } else {
                     debtEl.classList.add('bg-gray-50');
                 }
@@ -1487,68 +1628,102 @@
                 const minPmtInfo = debt.minPayment ? `${formatCurrency(debt.minPayment)} min. pmt` : 'No min. pmt';
 
                 debtEl.innerHTML = `
-                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
+                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
                     <div class="flex-1 flex justify-between items-center">
                         <div>
                             <p class="font-medium">${debt.name}</p>
                             <p class="text-sm text-gray-600">${aprInfo} • ${minPmtInfo}</p>
                         </div>
-                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800'}">${balanceFormatted}</span>
+                        <span class="text-lg font-semibold ${index === 0 ? 'text-green-700' : 'text-gray-800'}">${balanceFormatted}</span>
                     </div>
                 `;
                 debtPlanList.appendChild(debtEl);
             });
         }
         
-        // --- 13. BUDGET MODULE LOGIC ---
+        // --- 13. V2.4.0 BUDGET MODULE LOGIC ---
         
         function initializeBudgetUI() {
-            budgetContainer.innerHTML = ""; 
+            // This function now populates *both* budget areas (on Settings and the old one)
+            budgetDisplayPanels.forEach(panel => panel.innerHTML = "");
+            budgetEditInputs.forEach(panel => panel.innerHTML = "");
+            
             budgetCategories.forEach(category => {
-                const el = document.createElement('div');
-                el.innerHTML = `
+                const key = category.toLowerCase().replace(' ', '-');
+                
+                // 1. Create Display Panel Element
+                const displayEl = document.createElement('div');
+                displayEl.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-sm font-medium leading-6 text-gray-900">${category}</label>
-                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500">$0 of $0</span>
+                        <span id="budget-text-${key}" class="text-sm text-gray-500">$0 of $0</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <progress id="budget-progress-${category.toLowerCase().replace(' ', '-')}" value="0" max="100" class="flex-1"></progress>
-                        <div class="relative rounded-md shadow-sm w-28">
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <span class="text-gray-500 sm:text-sm">$</span>
-                            </div>
-                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" placeholder="0">
+                    <progress id="budget-progress-${key}" value="0" max="100" class="flex-1"></progress>
+                `;
+
+                // 2. Create Edit Panel Element
+                const editEl = document.createElement('div');
+                editEl.innerHTML = `
+                    <label class="block text-sm font-medium leading-6 text-gray-900">${category}</label>
+                    <div class="relative mt-1 rounded-md shadow-sm">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <span class="text-gray-500 sm:text-sm">$</span>
                         </div>
+                        <input type="number" id="budget-input-${key}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6" placeholder="0">
                     </div>
                 `;
-                budgetContainer.appendChild(el);
+                
+                // Add clones to both locations
+                budgetDisplayPanels.forEach(panel => panel.appendChild(displayEl.cloneNode(true)));
+                budgetEditInputs.forEach(panel => panel.appendChild(editEl.cloneNode(true)));
             });
         }
-        
-        saveBudgetBtn.addEventListener('click', async () => {
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            const newBudget = {};
-            budgetCategories.forEach(category => {
-                const inputEl = document.getElementById(`budget-input-${category.toLowerCase().replace(' ', '-')}`);
-                const amount = parseFloat(inputEl.value) || 0;
-                newBudget[category] = amount;
+
+        // Toggle visibility
+        toggleBudgetEditBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Find the parent card of the button that was clicked
+                const parentCard = btn.closest('.bg-white');
+                const panel = parentCard.querySelector('#budget-edit-panel');
+                
+                const isHidden = panel.classList.contains('show');
+                if (isHidden) {
+                    panel.classList.remove('show');
+                    btn.textContent = "Edit Budget";
+                } else {
+                    panel.classList.add('show');
+                    btn.textContent = "Close";
+                }
             });
-            
-            try {
-                const budgetRef = doc(db, `users/${user.uid}/budget`, 'currentBudget');
-                await setDoc(budgetRef, newBudget, { merge: true });
+        });
+        
+        saveBudgetBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const user = auth.currentUser;
+                if (!user) return;
                 
-                budgetSuccessEl.classList.remove('hidden');
-                setTimeout(() => {
-                    budgetSuccessEl.classList.add('hidden');
-                }, 2000);
+                const newBudget = {};
+                budgetCategories.forEach(category => {
+                    // Read from the *first* set of inputs (they'll be identical)
+                    const inputEl = document.getElementById(`budget-input-${category.toLowerCase().replace(' ', '-')}`);
+                    const amount = parseFloat(inputEl.value) || 0;
+                    newBudget[category] = amount;
+                });
                 
-            } catch (error) {
-                console.error("Error saving budget:", error);
-                alert("Error saving budget: " + error.message);
-            }
+                try {
+                    const budgetRef = doc(db, `users/${user.uid}/budget`, 'currentBudget');
+                    await setDoc(budgetRef, newBudget, { merge: true });
+                    
+                    budgetSuccessEls.forEach(el => el.classList.remove('hidden'));
+                    setTimeout(() => {
+                        budgetSuccessEls.forEach(el => el.classList.add('hidden'));
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error("Error saving budget:", error);
+                    alert("Error saving budget: " + error.message);
+                }
+            });
         });
         
         function listenForBudget(userId) {
@@ -1567,35 +1742,63 @@
         }
         
         function updateBudgetUI(categoryTotals) {
+            if (budgetDisplayPanels.length === 0 || budgetDisplayPanels[0].innerHTML === "") {
+                initializeBudgetUI(); // Ensure UI is built if listener fires first
+            }
+
+            let hasBudgets = false;
+            
             budgetCategories.forEach(category => {
                 const budgetAmount = currentBudget[category] || 0;
+                if (budgetAmount > 0) hasBudgets = true;
                 const spentAmount = categoryTotals[category] || 0;
                 
                 const key = category.toLowerCase().replace(' ', '-');
-                const inputEl = document.getElementById(`budget-input-${key}`);
-                const progressEl = document.getElementById(`budget-progress-${key}`);
-                const textEl = document.getElementById(`budget-text-${key}`);
+                // Select all elements matching this key (for both budget cards)
+                const inputEls = document.querySelectorAll(`input[id="budget-input-${key}"]`);
+                const progressEls = document.querySelectorAll(`progress[id="budget-progress-${key}"]`);
+                const textEls = document.querySelectorAll(`span[id="budget-text-${key}"]`);
                 
-                if (!inputEl || !progressEl || !textEl) return; 
+                if (inputEls.length === 0 || progressEls.length === 0 || textEls.length === 0) return; 
 
-                if (document.activeElement !== inputEl) {
-                     inputEl.value = budgetAmount > 0 ? budgetAmount : '';
-                }
+                // Update inputs
+                inputEls.forEach(inputEl => {
+                    if (document.activeElement !== inputEl) {
+                         inputEl.value = budgetAmount > 0 ? budgetAmount : '';
+                    }
+                });
                 
-                progressEl.value = spentAmount;
-                progressEl.max = budgetAmount > 0 ? budgetAmount : 1; 
+                const percentSpent = (budgetAmount > 0) ? (spentAmount / budgetAmount) * 100 : 0;
                 
-                textEl.textContent = `${formatCurrency(spentAmount)} of ${formatCurrency(budgetAmount)}`;
-                
-                progressEl.classList.remove('over-budget');
-                textEl.classList.remove('text-red-500');
-                if (spentAmount > budgetAmount && budgetAmount > 0) {
-                    progressEl.classList.add('over-budget');
-                    textEl.classList.add('text-red-500', 'font-medium');
-                } else {
-                    textEl.classList.remove('text-red-500', 'font-medium');
-                }
+                // Update progress bars
+                progressEls.forEach(progressEl => {
+                    progressEl.value = spentAmount;
+                    progressEl.max = budgetAmount > 0 ? budgetAmount : 1; 
+                    progressEl.classList.remove('over-budget', 'near-budget');
+                    if (percentSpent > 100) {
+                        progressEl.classList.add('over-budget');
+                    } else if (percentSpent > 85) {
+                        progressEl.classList.add('near-budget');
+                    }
+                });
+
+                // Update text
+                textEls.forEach(textEl => {
+                    textEl.textContent = `${formatCurrency(spentAmount)} of ${formatCurrency(budgetAmount)}`;
+                    textEl.classList.remove('text-red-500', 'text-amber-500', 'font-medium');
+                    if (percentSpent > 100) {
+                        textEl.classList.add('text-red-500', 'font-medium');
+                    } else if (percentSpent > 85) {
+                        textEl.classList.add('text-amber-500', 'font-medium');
+                    }
+                });
             });
+
+            if (!hasBudgets) {
+                 budgetDisplayPanels.forEach(panel => {
+                    panel.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Click "Edit Budget" to set your spending goals.</p>';
+                 });
+            }
         }
         
         // --- 14. FINANCIAL FOCUS "BRAIN" ---
@@ -1617,7 +1820,7 @@
             if (totalIncome > 0 || totalBudgeted > 0) {
                  focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
             } else {
-                focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
+                 focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
             }
 
             // 3. Budget Hotspot
@@ -1633,8 +1836,10 @@
                 }
             });
             
-            if (hotspot.percent > 75) {
-                focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-red-600">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
+            if (hotspot.percent > 100) {
+                focusBudgetHotspot.innerHTML = `Watch out! You're <strong class="text-red-600">${Math.round(hotspot.percent - 100)}% over</strong> your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
+            } else if (hotspot.percent > 85) {
+                focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-amber-500">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-amber-500">${hotspot.category}</strong> budget.`;
             } else if (hotspot.percent > 0) {
                 focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700">${hotspot.category}</strong>, with <strong class="text-gray-700">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
@@ -1656,48 +1861,75 @@
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC (V2.3.3) ---
+        // --- 15. CSV IMPORT LOGIC (V2.3.5) ---
         
-        // V2.3.3: CRITICAL FIX - Robust state-machine parser
+        // V2.3.3: The robust "state machine" parser
         function parseCSV(text) {
             const rows = [];
-            const lines = text.replace(/\r/g, '').split('\n');
-            
-            for (const line of lines) {
-                if (line.trim() === '') continue;
-                
-                const row = [];
-                let field = '';
-                let inQuotes = false;
-                
-                for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
-                    
-                    if (char === '"') {
-                        // Handle quotes
-                        if (inQuotes && line[i+1] === '"') {
-                            // This is an escaped quote ("")
-                            field += '"';
-                            i++; // Skip the next quote
-                        } else {
-                            // This is a start/end quote
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        // End of a field
-                        row.push(field.trim());
-                        field = '';
-                    } else {
-                        // Regular character
-                        field += char;
-                    }
-                }
-                
-                // Add the last field
-                row.push(field.trim());
-                rows.push(row);
+            let state = 0; // 0 = start of line, 1 = in field, 2 = in quoted field
+            let row = [];
+            let field = "";
+            let i = 0;
+
+            function pushField() {
+                row.push(field.replace(/""/g, '"')); // Unescape double quotes
+                field = "";
             }
-            return rows;
+
+            text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n'); // Normalize line endings
+
+            while (i < text.length) {
+                const char = text[i];
+                switch (state) {
+                    case 0: // Start of line or new field
+                        if (char === '"') {
+                            state = 2; // Start quoted field
+                        } else if (char === ',') {
+                            pushField();
+                        } else if (char === '\n') {
+                            pushField();
+                            rows.push(row);
+                            row = [];
+                        } else {
+                            field += char;
+                            state = 1; // Start unquoted field
+                        }
+                        break;
+                    case 1: // In unquoted field
+                        if (char === ',') {
+                            pushField();
+                            state = 0;
+                        } else if (char === '\n') {
+                            pushField();
+                            rows.push(row);
+                            row = [];
+                            state = 0;
+                        } else {
+                            field += char;
+                        }
+                        break;
+                    case 2: // In quoted field
+                        if (char === '"') {
+                            if (text[i + 1] === '"') {
+                                field += '"'; // Escaped double quote
+                                i++; // Skip next quote
+                            } else {
+                                state = 1; // End quoted field, but wait for comma/newline
+                            }
+                        } else {
+                            field += char;
+                        }
+                        break;
+                }
+                i++;
+            }
+
+            // Handle end of file
+            pushField();
+            rows.push(row);
+            
+            // Filter out empty rows (which can happen with trailing newlines)
+            return rows.filter(row => row.length > 1 || (row.length === 1 && row[0] !== ""));
         }
 
         csvFileInput.addEventListener('change', (event) => {
@@ -1728,12 +1960,11 @@
             
             const reader = new FileReader();
             
-            // V2.3.3: This ONLY parses headers and populates the map.
-            // The "Review Transactions" button (reviewCsvBtn) will handle the processing.
+            // V2.3.3 FIX: reader.onload just loads data. It does NOT process it.
             reader.onload = (e) => {
                 const fileContent = e.target.result;
                 try {
-                    rawCsvData = parseCSV(fileContent); // Use new robust parser
+                    rawCsvData = parseCSV(fileContent);
                     if (rawCsvData.length < 2) {
                         showImportError("This CSV is empty or only has a header row.");
                         return;
@@ -1749,15 +1980,12 @@
                     mapDescSelect.innerHTML = headerOptions;
                     mapAmountSelect.innerHTML = headerOptions;
                     
+                    // Auto-detect common headers
                     mapDateSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('date'));
-                    mapDescSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo'));
+                    mapDescSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('desc') || h.toLowerCase().includes('memo') || h.toLowerCase().includes('detail'));
                     mapAmountSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('amount'));
 
-                    csvMapSection.classList.add('show');
-                    
-                    // V2.3.3 REMOVAL: Do NOT auto-process transactions here.
-                    // This was the cause of the blank panel/race condition bug.
-                    // The 'reviewCsvBtn' click listener will now handle all processing.
+                    csvMapSection.classList.remove('hidden'); // Show the mapping section
                     
                 } catch (err) {
                     console.error("CSV Parse Error:", err);
@@ -1824,7 +2052,7 @@
              const amountIndex = mapAmountSelect.value;
              const dateFormat = mapDateFormat.value;
              
-             if (!dateIndex || !descIndex || !amountIndex) {
+             if (dateIndex < 0 || descIndex < 0 || amountIndex < 0) {
                  showImportError("Please map all three columns: Date, Description, and Amount.");
                  return;
              }
@@ -1844,7 +2072,7 @@
         });
 
         
-        // --- This function is now generic for ANY review list ---
+        // --- V2.3.5: Performance-fixed review list renderer ---
         function renderReviewList(transactions) {
             reviewList.innerHTML = ""; 
             
@@ -1878,8 +2106,8 @@
                 // Create the category dropdown for this specific transaction
                 const categorySelect = document.createElement('select');
                 categorySelect.id = `category-for-${tx.id}`;
-                categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm";
-                categorySelect.innerHTML = (amount > 0 ? '<option value="Income">Income</option>' : expenseCategoryOptionsHTML); // V2.3.3: Use correct options
+                categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm";
+                categorySelect.innerHTML = (amount > 0 ? '<option value="Income">Income</option>' : expenseCategoryOptionsHTML);
                 categorySelect.value = tx.category; 
                 
                 const li = document.createElement('li');
@@ -1939,7 +2167,7 @@
                 // --- Read from the DOM to get the user's final edits ---
                 parsedImportTransactions.forEach(tx => {
                     const categorySelectEl = document.getElementById(`category-for-${tx.id}`);
-                    const finalCategory = categorySelectEl.value; // Get the user's final choice!
+                    const finalCategory = categorySelectEl ? categorySelectEl.value : tx.category; // Get the user's final choice!
                     
                     const amount = tx.amount;
                     totalAmount += amount;
@@ -1994,7 +2222,7 @@
                 reviewPlaceholder.textContent = "Awaiting file to review...";
                 reviewPlaceholder.classList.remove('hidden');
                 confirmImportBtn.classList.add('hidden');
-                csvMapSection.classList.remove('show');
+                csvMapSection.classList.add('hidden');
                 parsedImportTransactions = [];
                 rawCsvData = [];
                 csvHeaders = [];
@@ -2051,7 +2279,8 @@
         
         // Listen for rules and display them
         function listenForRules(userId) {
-            const collectionPath = `users/${userId}/rules`;
+            // *** FIX: Was using global 'user.uid' instead of passed 'userId' ***
+            const collectionPath = `users/${userId}/rules`; 
             const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
             
             rulesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
