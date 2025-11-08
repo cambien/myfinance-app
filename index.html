@@ -1806,6 +1806,12 @@
         
         
         reviewCsvBtn.addEventListener('click', () => {
+            // V2.3.4 FIX: Check if rules are loaded before processing
+            if (!rulesLoaded) {
+                showImportError("Rules are still loading. Please wait a second and try again.");
+                return;
+            }
+            
             // V2.3.3 FIX: This button now acts as a manual trigger for the final review step
              if (rawCsvData.length < 2) {
                  showImportError("Please select a valid CSV file first.");
@@ -2040,6 +2046,7 @@
                     if (parsedImportTransactions.length > 0) {
                         applyRulesAndRerenderReviewList();
                     }
+                    rulesLoaded = true; // V2.3.4: Mark rules as loaded
                     return;
                 }
                 
@@ -2072,6 +2079,8 @@
                 if (parsedImportTransactions.length > 0) {
                     applyRulesAndRerenderReviewList();
                 }
+                
+                rulesLoaded = true; // V2.3.4: Mark rules as loaded
                 
             }, (error) => {
                 console.error("Error listening for rules:", error);
