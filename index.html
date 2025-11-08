@@ -1858,9 +1858,18 @@
             reviewPlaceholder.classList.add('hidden');
             let totalAmount = 0;
             
+            // V2.3.5: Calculate total amount from ALL transactions
             transactions.forEach(tx => {
+                totalAmount += tx.amount;
+            });
+
+            // V2.3.5: Performance fix: Only render the first 100 transactions
+            const PREVIEW_LIMIT = 100;
+            const transactionsToDisplay = transactions.slice(0, PREVIEW_LIMIT);
+            
+            transactionsToDisplay.forEach(tx => {
                 const amount = tx.amount;
-                totalAmount += amount;
+                // totalAmount += amount; // Moved to separate loop
                 const date = tx.date; 
                 const name = tx.name;
                 
@@ -1888,6 +1897,14 @@
                 reviewList.appendChild(li);
             });
             
+            // V2.3.5: Add a message if the list is truncated
+            if (transactions.length > PREVIEW_LIMIT) {
+                const truncatedLi = document.createElement('li');
+                truncatedLi.className = "p-2 text-center text-sm text-gray-500 italic dark:text-gray-400";
+                truncatedLi.textContent = `...and ${transactions.length - PREVIEW_LIMIT} more transactions (not shown in preview).`;
+                reviewList.appendChild(truncatedLi);
+            }
+
             // Add a summary
             const summaryLi = document.createElement('li');
             summaryLi.className = "p-2 border-t-2 border-gray-300 flex justify-between items-center font-bold";
