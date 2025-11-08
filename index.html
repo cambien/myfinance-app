@@ -180,21 +180,21 @@
                 </div>
                 
                 <div class="relative">
-                  <div class="relative flex justify-center text-sm">
-                    <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Or continue with</span>
-                  </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Or continue with</span>
+                    </div>
                 </div>
 
                 <div>
-                  <button id="google-signin-btn" class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 click-tracking-id-google-signin-btn dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
+                    <button id="google-signin-btn" class="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 click-tracking-id-google-signin-btn dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
 <svg class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
 </svg>
-                    <span>Google</span>
-                  </button>
+                        <span>Google</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -333,7 +333,7 @@
                         <div class="mt-2">
                             <select id="import-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                 <option value="">Select an account</option>
-                                </select>
+                            </select>
                         </div>
                     </div>
                     
@@ -372,17 +372,21 @@
                             </div>
                         </div>
                         <div>
-                             <label for="map-date-format" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Format</label>
-                             <select id="map-date-format" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
-                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                <option value="MM-DD-YYYY">MM-DD-YYYY</option>
-                             </select>
-                        </div>
-
-                        <button id="review-csv-btn" class="flex w-full justify-center rounded-md bg-purple-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-purple-500">Review Transactions</button>
+                           <label for="map-date-format" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Date Format</label>
+                           <select id="map-date-format" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
+                               <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                               <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+                           </select>
+                       </div>
                     </div>
+                    
+                    <!-- V2.3.3: Add the missing "Review Transactions" button -->
+                    <button id="review-csv-btn" class="mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
+                        Review Transactions
+                    </button>
+                    
                 </div>
             </div>
             
@@ -391,7 +395,7 @@
                 <div id="review-container" class="space-y-3 max-h-64 overflow-y-auto">
                     <p id="review-placeholder" class="text-gray-500 dark:text-gray-400">Awaiting file to review...</p>
                     <ul id="review-list" class="space-y-2">
-                        </ul>
+                    </ul>
                 </div>
                 <button id="confirm-import-btn" class="hidden mt-4 flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500">Confirm & Import Transactions</button>
                 <div id="import-error" class="hidden text-sm font-medium text-red-600 mt-2"></div>
@@ -463,7 +467,7 @@
                                 <select id="tx-type-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                     <option value="expense">Expense</option>
                                     <option value="income">Income</option>
-                                </sélect>
+                                </select>
                             </div>
                         </div>
                         <div>
@@ -475,20 +479,20 @@
                     </div>
 
                     <div>
-                        <label for="tx-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Category</Gabel>
+                        <label for="tx-category-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Category</label>
                         <div class="mt-2">
                             <select id="tx-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                 <option value="">Select a category</option>
-                                </select>
+                            </select>
                         </div>
                     </div>
                     
                     <div>
-                        <label for="tx-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account</Gabel>
+                        <label for="tx-account-select" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Account</label>
                         <div class="mt-2">
                             <select id="tx-account-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                 <option value="">Select an account</option>
-                                </select>
+                            </select>
                         </div>
                     </div>
                     
@@ -517,7 +521,7 @@
                                 <div class="mt-2">
                                     <select id="rule-category-select" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 p-2 dark:bg-gray-600 dark:text-white dark:ring-gray-500">
                                         <option value="">Select a category</option>
-                                        </select>
+                                    </select>
                                 </div>
                             </div>
                             <button id="add-rule-btn" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">Save Rule</button>
@@ -529,7 +533,7 @@
                         <div id="rule-list-container" class="space-y-2 max-h-48 overflow-y-auto">
                             <p id="rule-list-placeholder" class="text-gray-500 dark:text-gray-400">No rules saved yet.</p>
                             <ul id="rule-list" class="space-y-2">
-                                </ul>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -601,7 +605,7 @@
             writeBatch,
             deleteDoc,
             getDocs, 
-            where    
+            where   
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         console.log("DEBUG: Firebase modules loaded successfully.");
 
@@ -649,9 +653,9 @@
         const txCategoryOptionsHTML = `<option value="">Select a category</option><option value="Income">Income</option>${expenseCategoryOptionsHTML}`;
 
         // --- CSV / Import State ---
-        let rawCsvData = []; // To store the raw CSV rows
-        let csvHeaders = []; // To store the parsed headers
-        let parsedImportTransactions = []; // This is our "state" for the review list
+        let rawCsvData = []; 
+        let csvHeaders = []; 
+        let parsedImportTransactions = []; 
         let importTargetAccount = null; 
         let importTargetCategory = "Other"; 
 
@@ -696,11 +700,11 @@
         const mapDescSelect = document.getElementById('map-desc-select');
         const mapAmountSelect = document.getElementById('map-amount-select');
         const mapDateFormat = document.getElementById('map-date-format');
-        const reviewCsvBtn = document.getElementById('review-csv-btn');
+        const reviewCsvBtn = document.getElementById('review-csv-btn'); // V2.3.3: This button now exists
         
-        const reviewContainer = document.getElementById('review-container'); // Renamed
-        const reviewPlaceholder = document.getElementById('review-placeholder'); // Renamed
-        const reviewList = document.getElementById('review-list'); // Renamed
+        const reviewContainer = document.getElementById('review-container'); 
+        const reviewPlaceholder = document.getElementById('review-placeholder'); 
+        const reviewList = document.getElementById('review-list'); 
         
         const confirmImportBtn = document.getElementById('confirm-import-btn');
         const importError = document.getElementById('import-error');
@@ -836,7 +840,7 @@
                 }
                 return date;
             } catch (e) {
-                console.warn(`Could could not parse date: ${dateString} with format ${format}`, e);
+                console.warn(`Could not parse date: ${dateString} with format ${format}`, e);
                 return new Date(); // Fallback to now
             }
         };
@@ -1033,10 +1037,8 @@
                 liabilityFields.classList.remove('show');
 
             } catch (error) {
-                // V2.2.4 Fix: More explicit error reporting
                 console.error("Error adding account:", error);
-                alert(`Account Add Failed: ${error.message}. Check your Firebase Security Rules.`);
-                showAccountError("Account Add Failed. Check Console for details.");
+                showAccountError("Error adding account: " + error.message);
             }
         });
 
@@ -1078,15 +1080,9 @@
                         nameSpan.textContent = account.name;
                         
                         const balanceSpan = document.createElement('span');
-                        balanceSpan.className = "text-gray-600 dark:text-gray-300"; // V2.1.0 Dark Mode
+                        balanceSpan.className = "text-gray-600";
                         balanceSpan.textContent = balanceFormatted;
                         
-                        // V2.0.5: Clear Transaction History Button
-                        const clearTxBtn = document.createElement('button');
-                        clearTxBtn.className = "clear-tx-btn";
-                        clearTxBtn.textContent = "Clear Tx";
-                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
-
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = "delete-account-btn";
@@ -1097,7 +1093,6 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2";
-                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(balanceSpan);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1112,25 +1107,19 @@
                         nameSpan.className = "font-medium"; // --- V1.9: Removed pt-1
                         nameSpan.textContent = account.name;
 
-                        let detailsHtml = `<span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>`; // V2.1.0 Dark Mode
+                        let detailsHtml = `<span class="font-medium text-gray-700">${balanceFormatted}</span>`;
                         if (account.apr || account.minPayment) {
                             detailsHtml = `
                                 <div class="text-right">
-                                    <span class="font-medium text-gray-700 dark:text-gray-300">${balanceFormatted}</span>
-                                    ${account.apr ? `<p class="text-xs text-gray-500 dark:text-gray-400">${account.apr}% APR</p>` : ''}
-                                    ${account.minPayment ? `<p class="text-xs text-gray-500 dark:text-gray-400">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
+                                    <span class="font-medium text-gray-700">${balanceFormatted}</span>
+                                    ${account.apr ? `<p class="text-xs text-gray-500">${account.apr}% APR</p>` : ''}
+                                    ${account.minPayment ? `<p class="text-xs text-gray-500">${formatCurrency(account.minPayment)} min. pmt</p>` : ''}
                                 </div>
                             `;
                         }
                         
                         const detailsDiv = document.createElement('div');
                         detailsDiv.innerHTML = detailsHtml;
-
-                        // V2.0.5: Clear Transaction History Button
-                        const clearTxBtn = document.createElement('button');
-                        clearTxBtn.className = "clear-tx-btn";
-                        clearTxBtn.textContent = "Clear Tx";
-                        clearTxBtn.onclick = () => handleClearTransactions(accountId, account.name);
 
                         // --- NEW V1.9: Delete Button ---
                         const deleteBtn = document.createElement('button');
@@ -1142,7 +1131,6 @@
                         
                         const controlsDiv = document.createElement('div');
                         controlsDiv.className = "flex items-center space-x-2"; // --- V1.9: Changed to items-center
-                        controlsDiv.appendChild(clearTxBtn); // V2.0.5: Added clear button
                         controlsDiv.appendChild(detailsDiv);
                         controlsDiv.appendChild(deleteBtn);
                         
@@ -1154,8 +1142,8 @@
                     }
                 });
 
-                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No assets added yet.</li>';
-                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
+                if (assetCount === 0) assetList.innerHTML = '<li class="text-gray-500">No assets added yet.</li>';
+                if (liabilityCount === 0) liabilityList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
                 
                 const netWorth = totalAssets - totalLiabilities;
                 totalAssetsEl.textContent = formatCurrency(totalAssets);
@@ -1265,7 +1253,7 @@
                 let txCount = 0; 
                 
                 if (snapshot.empty) {
-                    txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No transactions logged yet.</li>'; // V2.1.0 Dark Mode
+                    txList.innerHTML = '<li class="text-gray-500">No transactions logged yet.</li>';
                     renderCategoryChart(categoryTotals);
                     updateBudgetUI(categoryTotals);
                     updateFinancialFocus(); 
@@ -1280,15 +1268,15 @@
                         totalIncomeThisPeriod += Math.abs(tx.amount); 
                     } else if (tx.type === 'expense') { 
                         if (budgetCategories.includes(tx.category)) {
-                             categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + Math.abs(tx.amount);
+                            categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + Math.abs(tx.amount);
                         } else {
-                             categoryTotals['Other'] = (categoryTotals['Other'] || 0) + Math.abs(tx.amount);
+                            categoryTotals['Other'] = (categoryTotals['Other'] || 0) + Math.abs(tx.amount);
                         }
                     }
 
                     if (txCount < 10) {
                         const txEl = document.createElement('li');
-                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"; // V2.1.0 Dark Mode
+                        txEl.className = "flex justify-between items-center p-2 rounded-md hover:bg-gray-50";
                         
                         const amountFormatted = formatCurrency(tx.amount);
                         const amountColor = tx.amount > 0 ? 'text-green-600' : 'text-red-600';
@@ -1297,7 +1285,7 @@
                         const infoDiv = document.createElement('div');
                         infoDiv.innerHTML = `
                             <p class="font-medium">${tx.description}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${tx.accountName} • ${tx.category} • ${date}</p>
+                            <p class="text-sm text-gray-500">${tx.accountName} • ${tx.category} • ${date}</p>
                         `;
                         
                         const amountSpan = document.createElement('span');
@@ -1322,7 +1310,7 @@
                 });
                 
                 if (txCount === 0) { 
-                     txList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No recent transactions.</li>'; // V2.1.0 Dark Mode
+                     txList.innerHTML = '<li class="text-gray-500">No recent transactions.</li>';
                 }
 
                 totalIncome = totalIncomeThisPeriod; 
@@ -1374,7 +1362,7 @@
                         transaction.delete(txRef);
                     });
                     
-                    console.log("DEBUG: Transaction deleted successfully!");
+                    console.log("DEBUG: Transaction deleted successfully.");
                     
                 } catch (error) {
                     console.error("Error deleting transaction:", error);
@@ -1423,8 +1411,7 @@
                                 position: 'bottom',
                                 labels: {
                                     padding: 15,
-                                    boxWidth: 12,
-                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563'
+                                    boxWidth: 12
                                 }
                             }
                         }
@@ -1433,20 +1420,27 @@
             }
         }
 
-        // V2.1.0: Re-render chart on theme change to update colors
-        themeToggleBtn.addEventListener('click', () => {
-             const isDark = !document.documentElement.classList.contains('dark');
-             setDarkTheme(isDark);
-             if (categoryChart) {
-                categoryChart.options.plugins.legend.labels.color = isDark ? '#D1D5DB' : '#4B5563';
-                categoryChart.update();
-             }
-        });
-
         // --- 12. DEBT PLANNER LOGIC ---
 
-        extraPaymentInput.addEventListener('input', renderDebtPlanner);
-        extraPaymentInput.addEventListener('blur', renderDebtPlanner); 
+        function updateDebtButtonStyles() {
+            if (debtSortStrategy === 'snowball') {
+                snowballBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                snowballBtn.classList.replace('text-gray-700', 'text-white');
+                snowballBtn.classList.remove('hover:bg-gray-400');
+                
+                avalancheBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                avalancheBtn.classList.replace('text-white', 'text-gray-700');
+                avalancheBtn.classList.add('hover:bg-gray-400');
+            } else { // avalanche
+                avalancheBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+                avalancheBtn.classList.replace('text-gray-700', 'text-white');
+                avalancheBtn.classList.remove('hover:bg-gray-400');
+                
+                snowballBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+                snowballBtn.classList.replace('text-white', 'text-gray-700');
+                snowballBtn.classList.add('hover:bg-gray-400');
+            }
+        }
         snowballBtn.addEventListener('click', () => {
             debtSortStrategy = 'snowball';
             updateDebtButtonStyles();
@@ -1460,144 +1454,46 @@
             updateFinancialFocus(); 
         });
         
-        function calculateDebtPlan(debts, extraPayment) {
-            // Clone the debts array to avoid modifying the global list
-            let debtList = debts.map(d => ({ ...d, remainingBalance: d.balance, monthsToPayoff: 0, totalInterest: 0 }));
+        function getSortedDebts() {
+            let debts = userAccounts.filter(acc => acc.type === 'liability' && acc.balance > 0);
             
             if (debtSortStrategy === 'snowball') {
-                // Sort by lowest balance first
-                debtList.sort((a, b) => a.remainingBalance - b.remainingBalance);
+                debts.sort((a, b) => a.balance - b.balance);
             } else { 
-                // Sort by highest APR first (Avalanche)
-                debtList.sort((a, b) => (b.apr || 0) - (a.apr || 0));
+                debts.sort((a, b) => (b.apr || 0) - (a.apr || 0));
             }
-
-            let totalMonths = 0;
-            let currentExtraPayment = extraPayment; // The snowball starts here
-            
-            // Loop through each debt in order
-            for (let i = 0; i < debtList.length; i++) {
-                let debt = debtList[i];
-                let minPaymentForSnowball = debt.minPayment || 0; 
-                
-                if (debt.remainingBalance <= 0 || minPaymentForSnowball <= 0) continue; 
-                
-                let totalPayment = minPaymentForSnowball + currentExtraPayment;
-                let monthlyApr = (debt.apr || 0) / 100 / 12;
-                
-                let loopSafetyCount = 0;
-                
-                let interestOnInitialBalance = debt.remainingBalance * monthlyApr;
-                if (totalPayment <= interestOnInitialBalance) { 
-                     return { debtList, totalMonths: 361 }; 
-                }
-
-
-                while (debt.remainingBalance > 0) {
-                    loopSafetyCount++;
-                    totalMonths++;
-                    
-                    if (totalMonths > 360 || loopSafetyCount > 400) { 
-                        return { debtList, totalMonths: 361 }; 
-                    }
-
-                    let interest = debt.remainingBalance * monthlyApr;
-                    let principalPayment = totalPayment - interest;
-                    
-                    debt.remainingBalance -= principalPayment;
-                    debt.totalInterest += interest;
-                    debt.monthsToPayoff++; 
-
-                    if (debt.remainingBalance <= 0) {
-                        currentExtraPayment += minPaymentForSnowball;
-                        debt.remainingBalance = 0; 
-                        break; 
-                    }
-                }
-            }
-            
-            return { debtList, totalMonths };
+            return debts;
         }
 
         function renderDebtPlanner() {
             debtPlanList.innerHTML = "";
-            const extraPayment = parseFloat(extraPaymentInput.value) || 0;
-            
-            const liabilities = userAccounts.filter(acc => acc.type === 'liability'); 
-            
-            let totalMonthlyMinPayment = 0;
-            const validDebts = liabilities.filter(d => 
-                (d.balance || 0) > 0 && 
-                (d.minPayment || 0) > 0 && 
-                (d.apr || 0) >= 0
-            );
-            validDebts.forEach(d => { totalMonthlyMinPayment += (d.minPayment || 0) });
-            
-            if (liabilities.length === 0) {
-                debtPlanList.innerHTML = '<li class="text-gray-500 dark:text-gray-400">No liabilities added yet.</li>';
-                return;
-            }
-            
-            if (validDebts.length === 0) {
-                debtPlanList.innerHTML = `<li class="text-red-500 font-bold dark:text-red-400">Warning: Cannot run projection. Make sure your liabilities have a balance, APR, AND Minimum Payment added.</li>`;
+            const sortedDebts = getSortedDebts(); 
+
+            if (sortedDebts.length === 0) {
+                debtPlanList.innerHTML = '<li class="text-gray-500">No liabilities added yet.</li>';
                 return;
             }
 
-            const { debtList, totalMonths } = calculateDebtPlan(validDebts, extraPayment);
-
-            if (totalMonths > 360) {
-                 debtPlanList.innerHTML = `<li class="text-red-500 font-bold dark:text-red-400">Warning: Payoff takes over 30 years with current payments. Try increasing the extra payment.</li>`;
-                 return;
-            }
-            
-            // V2.2.2 NEW: Add Summary Card
-            const summaryLi = document.createElement('li');
-            summaryLi.className = 'p-3 mb-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-l-4 border-purple-500 space-y-1';
-            summaryLi.innerHTML = `
-                <p class="text-sm font-medium dark:text-gray-200">Total Monthly Payment: <span class="font-bold text-purple-600">${formatCurrency(totalMonthlyMinPayment + extraPayment)}</span></p>
-                <p class="text-xs dark:text-gray-300">Min. Payments: ${formatCurrency(totalMonthlyMinPayment)} + Extra: ${formatCurrency(extraPayment)}</p>
-                <p class="text-sm font-bold dark:text-gray-200">Total Payoff Time: <span class="font-bold text-green-600">${Math.floor(totalMonths / 12)} years and ${totalMonths % 12} months</span></p>
-            `;
-            debtPlanList.appendChild(summaryLi);
-
-
-            const today = new Date();
-            let startingDate = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            debtList.forEach((debt, index) => {
-                const isPaidOff = debt.monthsToPayoff > 0;
-                
-                let payoffDate = 'N/A';
-                if (isPaidOff) {
-                    let futureDate = new Date(startingDate);
-                    futureDate.setMonth(futureDate.getMonth() + debt.monthsToPayoff); 
-                    payoffDate = formatDateMonthYear(futureDate);
-                }
-
+            sortedDebts.forEach((debt, index) => {
                 const debtEl = document.createElement('li');
-                debtEl.className = "p-3 rounded-lg flex flex-col space-y-1";
+                debtEl.className = "p-3 rounded-lg flex items-center space-x-4";
+                if (index === 0) {
+                    debtEl.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+                } else {
+                    debtEl.classList.add('bg-gray-50');
+                }
+                const balanceFormatted = formatCurrency(debt.balance);
+                const aprInfo = debt.apr ? `${debt.apr}% APR` : 'No APR';
+                const minPmtInfo = debt.minPayment ? `${formatCurrency(debt.minPayment)} min. pmt` : 'No min. pmt';
 
-                const isTarget = index === 0;
-                const baseClass = isTarget ? 'bg-blue-50 dark:bg-gray-600 border-l-4 border-blue-500' : 'bg-gray-50 dark:bg-gray-700';
-
-                debtEl.classList.add(baseClass);
-                
                 debtEl.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="flex items-center justify-center h-6 w-6 rounded-full ${isTarget ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'} text-xs font-bold">${index + 1}</span>
-                            <p class="font-semibold text-base ${isTarget ? 'text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}">${debt.name}</p>
+                    <span class="flex items-center justify-center h-8 w-8 rounded-full ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-700'} text-lg font-bold">${index + 1}</span>
+                    <div class="flex-1 flex justify-between items-center">
+                        <div>
+                            <p class="font-medium">${debt.name}</p>
+                            <p class="text-sm text-gray-600">${aprInfo} • ${minPmtInfo}</p>
                         </div>
-                        <span class="text-sm text-gray-700 dark:text-gray-300">${debt.apr ? `${debt.apr}% APR` : ''}</span>
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 pl-8 space-y-1">
-                        <p>Balance: ${formatCurrency(debt.balance)}</p>
-                        <p>Min. Pmt: ${formatCurrency(debt.minPayment)}</p>
-                        ${isPaidOff ? 
-                            `<p class="font-bold text-green-600">Payoff Date: ${payoffDate}</p>
-                            <p>Total Interest Paid: ${formatCurrency(debt.totalInterest)}</p>` : 
-                            `<p class="font-bold text-red-600 dark:text-red-400">Error: Not projected to be paid off within 30 years.</p>`
-                        }
+                        <span class="text-lg font-semibold ${index === 0 ? 'text-blue-700' : 'text-gray-800'}">${balanceFormatted}</span>
                     </div>
                 `;
                 debtPlanList.appendChild(debtEl);
@@ -1612,8 +1508,8 @@
                 const el = document.createElement('div');
                 el.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">${category}</label>
-                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500 dark:text-gray-400">$0 of $0</span>
+                        <label class="block text-sm font-medium leading-6 text-gray-900">${category}</label>
+                        <span id="budget-text-${category.toLowerCase().replace(' ', '-')}" class="text-sm text-gray-500">$0 of $0</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <progress id="budget-progress-${category.toLowerCase().replace(' ', '-')}" value="0" max="100" class="flex-1"></progress>
@@ -1621,7 +1517,7 @@
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                 <span class="text-gray-500 sm:text-sm">$</span>
                             </div>
-                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 dark:bg-gray-600 dark:text-white dark:ring-gray-500" placeholder="0">
+                            <input type="number" id="budget-input-${category.toLowerCase().replace(' ', '-')}" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6" placeholder="0">
                         </div>
                     </div>
                 `;
@@ -1691,17 +1587,13 @@
                 
                 textEl.textContent = `${formatCurrency(spentAmount)} of ${formatCurrency(budgetAmount)}`;
                 
-                progressEl.classList.remove('over-budget', 'near-budget'); // V2.3.0 Reset
-                textEl.classList.remove('text-red-500', 'text-yellow-500', 'font-medium'); // V2.3.0 Reset
-
-                const percentSpent = (spentAmount / budgetAmount) * 100;
-                
+                progressEl.classList.remove('over-budget');
+                textEl.classList.remove('text-red-500');
                 if (spentAmount > budgetAmount && budgetAmount > 0) {
                     progressEl.classList.add('over-budget');
                     textEl.classList.add('text-red-500', 'font-medium');
-                } else if (percentSpent >= 80 && budgetAmount > 0) { // V2.3.0: 80% Warning
-                     progressEl.classList.add('near-budget');
-                     textEl.classList.add('text-yellow-500', 'font-medium');
+                } else {
+                    textEl.classList.remove('text-red-500', 'font-medium');
                 }
             });
         }
@@ -1713,22 +1605,17 @@
             const sortedDebts = getSortedDebts();
             if (sortedDebts.length > 0) {
                 const targetDebt = sortedDebts[0];
-                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600 dark:text-purple-400">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600 dark:text-purple-400">${targetDebt.name}</strong>.`;
+                focusDebtTarget.innerHTML = `Your plan is <strong class="text-purple-600">${debtSortStrategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'}</strong>. Your #1 target is <strong class="text-purple-600">${targetDebt.name}</strong>.`;
             } else {
                 focusDebtTarget.innerHTML = `You have no debts! 🎉 Focus on building your assets.`;
             }
             
             // 2. Leftover Cash
             let totalBudgeted = 0;
-            budgetCategories.forEach(category => {
-                if(category !== 'Other') {
-                    totalBudgeted += currentBudget[category] || 0;
-                }
-            });
-
+            Object.values(currentBudget).forEach(amount => totalBudgeted += amount);
             const leftover = totalIncome - totalBudgeted;
             if (totalIncome > 0 || totalBudgeted > 0) {
-                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700 dark:text-gray-300">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
+                 focusLeftoverCash.innerHTML = `You've logged <strong class="text-green-600">${formatCurrency(totalIncome)}</strong> in income and budgeted <strong class="text-gray-700">${formatCurrency(totalBudgeted)}</strong> in spending. You're on track to have <strong class="text-${leftover >= 0 ? 'green-600' : 'red-600'}">${formatCurrency(leftover)}</strong> left over.`;
             } else {
                 focusLeftoverCash.innerHTML = `Log your income and set a budget to see your monthly forecast.`;
             }
@@ -1736,8 +1623,6 @@
             // 3. Budget Hotspot
             let hotspot = { category: null, percent: 0 };
             budgetCategories.forEach(category => {
-                if (category === 'Other') return; 
-                
                 const budget = currentBudget[category] || 0;
                 const spent = currentCategoryTotals[category] || 0;
                 if (budget > 0) {
@@ -1751,7 +1636,7 @@
             if (hotspot.percent > 75) {
                 focusBudgetHotspot.innerHTML = `Heads up! You've already spent <strong class="text-red-600">${Math.round(hotspot.percent)}%</strong> of your <strong class="text-red-600">${hotspot.category}</strong> budget.`;
             } else if (hotspot.percent > 0) {
-                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700 dark:text-gray-300">${hotspot.category}</strong>, with <strong class="text-gray-700 dark:text-gray-300">${Math.round(hotspot.percent)}%</strong> spent.`;
+                focusBudgetHotspot.innerHTML = `Your biggest budget item is <strong class="text-gray-700">${hotspot.category}</strong>, with <strong class="text-gray-700">${Math.round(hotspot.percent)}%</strong> spent.`;
             } else {
                 focusBudgetHotspot.innerHTML = `You haven't logged any spending against your budget yet.`;
             }
@@ -1765,35 +1650,53 @@
             });
 
             if (topSpending.amount > 0) {
-                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600 dark:text-purple-400">${topSpending.category}</strong> at <strong class="text-purple-600 dark:text-purple-400">${formatCurrency(topSpending.amount)}</strong>.`;
+                focusTopSpending.innerHTML = `Your top spending category is <strong class="text-purple-600">${topSpending.category}</strong> at <strong class="text-purple-600">${formatCurrency(topSpending.amount)}</strong>.`;
             } else {
                 focusTopSpending.innerHTML = `Log some expenses to see your top spending category.`;
             }
         }
         
-        // --- 15. CSV IMPORT LOGIC ---
+        // --- 15. CSV IMPORT LOGIC (V2.3.3) ---
         
+        // V2.3.3: CRITICAL FIX - Robust state-machine parser
         function parseCSV(text) {
             const rows = [];
-            const lines = text.split('\n');
-            lines.forEach(line => {
-                if (line.trim() === '') return;
-                const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+            const lines = text.replace(/\r/g, '').split('\n');
+            
+            for (const line of lines) {
+                if (line.trim() === '') continue;
+                
                 const row = [];
-                let match;
-                regex.lastIndex = 0; 
-                while ((match = regex.exec(line)) !== null) {
-                    let value = match[1];
-                    if (value.startsWith('"') && value.endsWith('"')) {
-                        value = value.substring(1, value.length - 1);
+                let field = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        // Handle quotes
+                        if (inQuotes && line[i+1] === '"') {
+                            // This is an escaped quote ("")
+                            field += '"';
+                            i++; // Skip the next quote
+                        } else {
+                            // This is a start/end quote
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        // End of a field
+                        row.push(field.trim());
+                        field = '';
+                    } else {
+                        // Regular character
+                        field += char;
                     }
-                    value = value.replace(/""/g, '"'); 
-                    row.push(value.trim());
                 }
-                if (row.length > 0) {
-                    rows.push(row);
-                }
-            });
+                
+                // Add the last field
+                row.push(field.trim());
+                rows.push(row);
+            }
             return rows;
         }
 
@@ -1825,11 +1728,12 @@
             
             const reader = new FileReader();
             
-            // V2.3.1 FIX: Move processing into the onload handler
+            // V2.3.3: This ONLY parses headers and populates the map.
+            // The "Review Transactions" button (reviewCsvBtn) will handle the processing.
             reader.onload = (e) => {
                 const fileContent = e.target.result;
                 try {
-                    rawCsvData = parseCSV(fileContent);
+                    rawCsvData = parseCSV(fileContent); // Use new robust parser
                     if (rawCsvData.length < 2) {
                         showImportError("This CSV is empty or only has a header row.");
                         return;
@@ -1850,9 +1754,10 @@
                     mapAmountSelect.value = csvHeaders.findIndex(h => h.toLowerCase().includes('amount'));
 
                     csvMapSection.classList.add('show');
-
-                    // V2.3.1 FIX: Automatically trigger the review button logic after file loads
-                    reviewCsvBtn.click();
+                    
+                    // V2.3.3 REMOVAL: Do NOT auto-process transactions here.
+                    // This was the cause of the blank panel/race condition bug.
+                    // The 'reviewCsvBtn' click listener will now handle all processing.
                     
                 } catch (err) {
                     console.error("CSV Parse Error:", err);
@@ -1901,9 +1806,9 @@
         
         
         reviewCsvBtn.addEventListener('click', () => {
-             // V2.3.1 FIX: Check if data is loaded before processing
+            // V2.3.3 FIX: This button now acts as a manual trigger for the final review step
              if (rawCsvData.length < 2) {
-                 showImportError("File content not loaded. Please re-select the CSV file.");
+                 showImportError("Please select a valid CSV file first.");
                  return;
              }
              
@@ -1959,8 +1864,8 @@
                 const categorySelect = document.createElement('select');
                 categorySelect.id = `category-for-${tx.id}`;
                 categorySelect.className = "block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm";
-                categorySelect.innerHTML = (amount > 0 ? '<option value="Income">Income</option>' : categoryOptionsHTML);
-                categorySelect.value = tx.category; // Set to the pre-categorized value!
+                categorySelect.innerHTML = (amount > 0 ? '<option value="Income">Income</option>' : expenseCategoryOptionsHTML); // V2.3.3: Use correct options
+                categorySelect.value = tx.category; 
                 
                 const li = document.createElement('li');
                 li.className = "p-2 border-b border-gray-200 grid grid-cols-3 gap-2 items-center";
@@ -2125,8 +2030,8 @@
         function listenForRules(userId) {
             const collectionPath = `users/${userId}/rules`;
             const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
-
-            transactionsListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            
+            rulesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                 userRules = []; 
                 ruleList.innerHTML = "";
                 
